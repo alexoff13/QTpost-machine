@@ -27,20 +27,6 @@ class App(QWidget):
         self.buttons['Save'].clicked.connect(lambda: Saver.save_program())
         self.buttons['Load'].clicked.connect(lambda: Loader.load_program())
 
-    def on_click(self, btn):
-        if btn[1]:
-            btn[0].setText('')
-        else:
-            btn[0].setText('+')
-        btn[1] = not btn[1]
-
-    def set_tape(self, i, x, y):
-        button = QPushButton('', parent=self)
-        self.tape[i] = [button, False]
-        self.tape[i][0].move(x, y)
-        self.tape[i][0].resize(15, 20)
-        self.tape[i][0].clicked.connect(lambda: self.on_click(self.tape[i]))
-
     def createTable(self):
         self.tableWidget = QTableWidget(self)
         self.tableWidget.setRowCount(4)
