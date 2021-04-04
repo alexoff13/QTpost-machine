@@ -14,7 +14,6 @@ class App(QWidget):
     def __init__(self):
         super().__init__()
         self.buttons = dict()
-        self.tape = dict()
         self.initUI()
 
     def set_buttons(self, name: str, hint: str, x: int, y: int):
@@ -24,8 +23,8 @@ class App(QWidget):
         self.buttons[f'{name}'].move(x, y)
 
     def set_actions_buttons(self):
-        self.buttons['Save'].clicked.connect(lambda: Saver.save_program())
-        self.buttons['Load'].clicked.connect(lambda: Loader.load_program())
+        self.buttons['Save'].clicked.connect(lambda: Saver.save_program(self))
+        self.buttons['Load'].clicked.connect(lambda: Loader.load_program(self))
 
     def createTable(self):
         self.tableWidget = QTableWidget(self)
@@ -51,7 +50,8 @@ class App(QWidget):
         for name in ('Start', 'Debug', 'Stop', 'Save', 'Load'):
             self.set_buttons(name, name, x, y)
             x += 80
-
+        # установка действий главных кнопок
+        self.set_actions_buttons()
         # установка таймера
         self.buttons['timer'] = QSpinBox(self)
         self.buttons['timer'].resize(80, 20)

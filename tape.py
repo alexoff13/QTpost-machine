@@ -30,11 +30,16 @@ class Tape:
         self.__right = self.__LENGTH
         self.__tape = dict()
 
-    def __set_cell(self, i: int, x: int, y: int) -> None:
-        self.__tape[i] = Cell(QPushButton(self.__NOT_MARKED, self.__app))
+    def __set_cell(self, i: int, x: int, y: int, marked: bool = False) -> None:
+        text = self.__MARKED if marked else self.__NOT_MARKED
+        self.__tape[i] = Cell(QPushButton(text, self.__app), marked)
         self.__tape[i].button.move(x, y)
         self.__tape[i].button.resize(15, 20)
         self.__tape[i].button.clicked.connect(lambda: self.__on_cell_click(self.__tape[i]))
+
+    @property
+    def cells(self) -> dict:
+        return self.__tape
 
     def show(self) -> None:
         x = self.__x
