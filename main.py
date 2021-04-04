@@ -1,10 +1,12 @@
 import sys
 
-from tape import Tape
-
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QWidget, QToolTip,
                              QApplication, QPushButton, QTableWidget, QTableWidgetItem, QSpinBox)
+
+from tape import Tape
+from utils.loader import Loader
+from utils.saver import Saver
 
 
 class App(QWidget):
@@ -20,6 +22,10 @@ class App(QWidget):
         self.buttons[f'{name}'].setToolTip(hint)
         self.buttons[f'{name}'].resize(self.buttons[f'{name}'].sizeHint())
         self.buttons[f'{name}'].move(x, y)
+
+    def set_actions_buttons(self):
+        self.buttons['Save'].clicked.connect(lambda: Saver.save_program())
+        self.buttons['Load'].clicked.connect(lambda: Loader.load_program())
 
     def on_click(self, btn):
         if btn[1]:
@@ -39,13 +45,13 @@ class App(QWidget):
         self.tableWidget = QTableWidget(self)
         self.tableWidget.setRowCount(4)
         self.tableWidget.setColumnCount(3)
+        self.tableWidget.setHorizontalHeaderLabels(["Command", "Jump to state", "Comment"])
         for i in range(10):
             if i >= self.tableWidget.rowCount():
                 self.tableWidget.setRowCount(i + 1)
             self.add_row(i, 0, 'a')
             self.add_row(i, 1, 'a')
-            self.add_row(i, 2, 'a')
-        self.tableWidget.resize(500, 200)
+        self.tableWidget.resize(800, 600)
         self.tableWidget.move(10, 80)
 
     def add_row(self, i, j, value):
