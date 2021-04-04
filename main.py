@@ -2,7 +2,7 @@ import sys
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QWidget, QToolTip,
-                             QApplication, QPushButton, QScrollArea, QTableWidget, QTableWidgetItem)
+                             QApplication, QPushButton, QTableWidget, QTableWidgetItem, QSpinBox)
 
 
 class App(QWidget):
@@ -34,7 +34,6 @@ class App(QWidget):
         self.tape[i][0].clicked.connect(lambda: self.on_click(self.tape[i]))
 
     def createTable(self):
-        # Create table
         self.tableWidget = QTableWidget(self)
         self.tableWidget.setRowCount(4)
         self.tableWidget.setColumnCount(3)
@@ -51,12 +50,20 @@ class App(QWidget):
         self.tableWidget.setItem(i, j, QTableWidgetItem(value))
 
     def initUI(self):
+        # установка верхних главных кнопок
         QToolTip.setFont(QFont('SansSerif', 10))
         self.setToolTip('This is a <b>QWidget</b> widget')
         x, y = 10, 10
-        for name in ('start', 'debug', 'stop', 'save', 'load'):
+        for name in ('Start', 'Debug', 'Stop', 'Save', 'Load'):
             self.set_buttons(name, name, x, y)
             x += 80
+
+        # установка таймера
+        self.buttons['timer'] = QSpinBox(self)
+        self.buttons['timer'].resize(80, 20)
+        self.buttons['timer'].move(x, y)
+
+        # установка ленты
         x, y = 10, 50
         self.tape[0] = QPushButton('<', self)
         self.tape[0].move(x, y)
@@ -68,17 +75,18 @@ class App(QWidget):
         self.tape[19] = QPushButton('>', self)
         self.tape[19].move(x, y)
         self.tape[19].resize(15, 20)
-        self.setGeometry(500, 200, 900, 700)
-        self.setWindowTitle('Machine Post')
+
+        # установка таблицы с программой
         self.createTable()
+
+        # установка параметров окна
+        self.setGeometry(200, 200, 900, 500)
+        self.setWindowTitle('Post Machine')
+
         self.show()
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     App = App()
-    scroll_area = QScrollArea()
-    scroll_area.setWidget(App)
-
-    scroll_area.show()
     sys.exit(app.exec_())
