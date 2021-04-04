@@ -1,0 +1,84 @@
+import sys
+
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import (QWidget, QToolTip,
+                             QApplication, QPushButton, QScrollArea, QTableWidget, QTableWidgetItem)
+
+
+class App(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self.buttons = dict()
+        self.tape = dict()
+        self.initUI()
+
+    def set_buttons(self, name: str, hint: str, x: int, y: int):
+        self.buttons[f'{name}'] = QPushButton(name, self)
+        self.buttons[f'{name}'].setToolTip(hint)
+        self.buttons[f'{name}'].resize(self.buttons[f'{name}'].sizeHint())
+        self.buttons[f'{name}'].move(x, y)
+
+    def on_click(self, btn):
+        if btn[1]:
+            btn[0].setText('')
+        else:
+            btn[0].setText('+')
+        btn[1] = not btn[1]
+
+    def set_tape(self, i, x, y):
+        button = QPushButton('', parent=self)
+        self.tape[i] = [button, False]
+        self.tape[i][0].move(x, y)
+        self.tape[i][0].resize(15, 20)
+        self.tape[i][0].clicked.connect(lambda: self.on_click(self.tape[i]))
+
+    def createTable(self):
+        # Create table
+        self.tableWidget = QTableWidget(self)
+        self.tableWidget.setRowCount(4)
+        self.tableWidget.setColumnCount(3)
+        for i in range(10):
+            if i >= self.tableWidget.rowCount():
+                self.tableWidget.setRowCount(i + 1)
+            self.add_row(i, 0, 'a')
+            self.add_row(i, 1, 'a')
+            self.add_row(i, 2, 'a')
+        self.tableWidget.resize(500, 200)
+        self.tableWidget.move(10, 80)
+
+    def add_row(self, i, j, value):
+        self.tableWidget.setItem(i, j, QTableWidgetItem(value))
+
+    def initUI(self):
+        QToolTip.setFont(QFont('SansSerif', 10))
+        self.setToolTip('This is a <b>QWidget</b> widget')
+        x, y = 10, 10
+        for name in ('start', 'debug', 'stop', 'save', 'load'):
+            self.set_buttons(name, name, x, y)
+            x += 80
+        x, y = 10, 50
+        self.tape[0] = QPushButton('<', self)
+        self.tape[0].move(x, y)
+        self.tape[0].resize(15, 20)
+        for i in range(1, 19):
+            x += 15
+            self.set_tape(i, x, y)
+        x += 15
+        self.tape[19] = QPushButton('>', self)
+        self.tape[19].move(x, y)
+        self.tape[19].resize(15, 20)
+        self.setGeometry(500, 200, 900, 700)
+        self.setWindowTitle('Machine Post')
+        self.createTable()
+        self.show()
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    App = App()
+    scroll_area = QScrollArea()
+    scroll_area.setWidget(App)
+
+    scroll_area.show()
+    sys.exit(app.exec_())
