@@ -60,3 +60,8 @@ class Tape:
     def __on_cell_click(self, cell: Cell) -> None:
         cell.button.setText(self.__NOT_MARKED if cell.is_marked else self.__MARKED)
         cell.is_marked = not cell.is_marked
+
+    def set_from_file(self, file: list) -> None:
+        for cell in file:
+            if self.__tape[cell[0]].is_marked != cell[1]:
+                self.__on_cell_click(self.__tape[cell[0]])

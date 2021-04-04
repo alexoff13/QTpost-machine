@@ -10,13 +10,13 @@ class Saver:
             states_cells.append([index, cells[index].is_marked])
 
         table_data = dict()
-        count_rows = app.tableWidget.rowCount()
+        count_rows = app.table_program.table.rowCount()
         for i in range(count_rows):
             command, comment, jump_state = '', '', ''
             try:
-                command = app.tableWidget.item(i, 0).text()
-                jump_state = app.tableWidget.item(i, 1).text()
-                comment = app.tableWidget.item(i, 2).text()
+                command = app.table_program.table.item(i, 0).text()
+                jump_state = app.table_program.table.item(i, 1).text()
+                comment = app.table_program.table.item(i, 2).text()
             except AttributeError:
                 pass
             table_data[i] = [command, jump_state, comment]
@@ -26,5 +26,5 @@ class Saver:
             'program': table_data,
         }
 
-        with open('test.json', mode='w') as fout:
+        with open('test.pmp', mode='w') as fout:
             fout.writelines(json.dumps(program, sort_keys=True, indent=4))

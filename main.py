@@ -4,6 +4,7 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QWidget, QToolTip,
                              QApplication, QPushButton, QTableWidget, QTableWidgetItem, QSpinBox)
 
+from table_program import TableProgram
 from tape import Tape
 from utils.loader import Loader
 from utils.saver import Saver
@@ -26,22 +27,6 @@ class App(QWidget):
         self.buttons['Save'].clicked.connect(lambda: Saver.save_program(self))
         self.buttons['Load'].clicked.connect(lambda: Loader.load_program(self))
 
-    def createTable(self):
-        self.tableWidget = QTableWidget(self)
-        self.tableWidget.setRowCount(4)
-        self.tableWidget.setColumnCount(3)
-        self.tableWidget.setHorizontalHeaderLabels(["Command", "Jump to state", "Comment"])
-        for i in range(10):
-            if i >= self.tableWidget.rowCount():
-                self.tableWidget.setRowCount(i + 1)
-            self.add_row(i, 0, 'a')
-            self.add_row(i, 1, 'a')
-        self.tableWidget.resize(800, 600)
-        self.tableWidget.move(10, 80)
-
-    def add_row(self, i, j, value):
-        self.tableWidget.setItem(i, j, QTableWidgetItem(value))
-
     def initUI(self):
         # установка верхних главных кнопок
         QToolTip.setFont(QFont('SansSerif', 10))
@@ -62,7 +47,8 @@ class App(QWidget):
         self.tape.show()
 
         # установка таблицы с программой
-        self.createTable()
+        self.table_program = TableProgram(self, 10, 80)
+        self.table_program.create_table()
 
         # установка параметров окна
         self.setGeometry(200, 200, 900, 500)
