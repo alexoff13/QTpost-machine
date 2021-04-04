@@ -1,5 +1,7 @@
 import sys
 
+from tape import Tape
+
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QWidget, QToolTip,
                              QApplication, QPushButton, QTableWidget, QTableWidgetItem, QSpinBox)
@@ -64,17 +66,8 @@ class App(QWidget):
         self.buttons['timer'].move(x, y)
 
         # установка ленты
-        x, y = 10, 50
-        self.tape[0] = QPushButton('<', self)
-        self.tape[0].move(x, y)
-        self.tape[0].resize(15, 20)
-        for i in range(1, 19):
-            x += 15
-            self.set_tape(i, x, y)
-        x += 15
-        self.tape[19] = QPushButton('>', self)
-        self.tape[19].move(x, y)
-        self.tape[19].resize(15, 20)
+        self.tape = Tape(self, 10, 50)
+        self.tape.show()
 
         # установка таблицы с программой
         self.createTable()
