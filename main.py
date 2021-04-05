@@ -2,7 +2,8 @@ import sys
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QWidget, QToolTip,
-                             QApplication, QPushButton, QTableWidget, QTableWidgetItem, QSpinBox)
+                             QApplication, QPushButton, QTableWidget, QTableWidgetItem, QSpinBox, QGridLayout, QLabel,
+                             QDoubleSpinBox)
 
 from table_program import TableProgram
 from tape import Tape
@@ -14,13 +15,15 @@ class App(QWidget):
 
     def __init__(self):
         super().__init__()
+        self.tape = Tape(self, 10, 50)
+        self.table_program = TableProgram(self, 10, 80)
         self.buttons = dict()
         self.initUI()
 
     def set_buttons(self, name: str, hint: str, x: int, y: int):
         self.buttons[f'{name}'] = QPushButton(name, self)
         self.buttons[f'{name}'].setToolTip(hint)
-        self.buttons[f'{name}'].resize(self.buttons[f'{name}'].sizeHint())
+        self.buttons[f'{name}'].resize(80, 25)
         self.buttons[f'{name}'].move(x, y)
 
     def set_actions_buttons(self):
@@ -38,16 +41,17 @@ class App(QWidget):
         # установка действий главных кнопок
         self.set_actions_buttons()
         # установка таймера
-        self.buttons['timer'] = QSpinBox(self)
+        self.buttons['timer'] = QDoubleSpinBox(self)
+        self.buttons['timer'].setRange(0.1, 1)
+        self.buttons['timer'].setDecimals(1)
+        self.buttons['timer'].setSingleStep(0.1)
         self.buttons['timer'].resize(80, 20)
         self.buttons['timer'].move(x, y)
 
         # установка ленты
-        self.tape = Tape(self, 10, 50)
         self.tape.show()
 
         # установка таблицы с программой
-        self.table_program = TableProgram(self, 10, 80)
         self.table_program.create_table()
 
         # установка параметров окна

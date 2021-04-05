@@ -5,10 +5,6 @@ class Numbering:
     pass
 
 
-class Carriage:
-    pass
-
-
 class Cell:
 
     def __init__(self, button: QPushButton, is_marked: bool = False) -> None:

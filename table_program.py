@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QWidget, QTableWidget, QTableWidgetItem
 
 # TODO засунуть в LAYOUT
 
+
 class TableProgram:
 
     def __init__(self, app: QWidget, x: int, y: int) -> None:

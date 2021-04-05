@@ -27,9 +27,9 @@ class Saver:
             'tape': states_cells,
             'program': table_data,
         }
-        fname = QFileDialog.getSaveFileName(app, 'Choose file', './~')[0]
+        fname = QFileDialog.getSaveFileName(app, 'Choose file', './program.pmp')[0]
         try:
             with open(fname, mode='w') as fout:
-                fout.writelines(json.dumps(program, sort_keys=True, indent=4))
+                json.dump(program, fout, sort_keys=True, indent=4)
         except:
             pass
