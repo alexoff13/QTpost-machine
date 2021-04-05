@@ -1,5 +1,7 @@
 import json
 
+from PyQt5.QtWidgets import QFileDialog
+
 
 class Saver:
     @staticmethod
@@ -25,6 +27,9 @@ class Saver:
             'tape': states_cells,
             'program': table_data,
         }
-
-        with open('test.pmp', mode='w') as fout:
-            fout.writelines(json.dumps(program, sort_keys=True, indent=4))
+        fname = QFileDialog.getSaveFileName(app, 'Choose file', './~')[0]
+        try:
+            with open(fname, mode='w') as fout:
+                fout.writelines(json.dumps(program, sort_keys=True, indent=4))
+        except:
+            pass
