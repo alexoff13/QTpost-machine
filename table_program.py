@@ -20,10 +20,17 @@ class TableProgram:
         #         self.table.setRowCount(i + 1)
         #     self.add_row(i, 0, 'a')
         #     self.add_row(i, 1, 'a')
+        self.table.cellClicked.connect(lambda: self.row_column_clicked())
         self.table.resize(800, 600)
         self.table.move(self.__x, self.__y)
 
+    def row_column_clicked(self):
+        if self.table.currentRow() + 1 == self.table.rowCount():
+            self.table.setRowCount(self.table.rowCount() + 1)
+
     def add_row(self, i, j, value):
+        if self.table.rowCount() - 1 == i:
+            self.table.setRowCount(i + 1)
         self.table.setItem(i, j, QTableWidgetItem(value))
 
     def set_from_file(self, file: dict):

@@ -13,7 +13,7 @@ class Loader:
             with open(fname, mode='r') as fin:
                 program = json.load(fin)
         except:
-            pass
+            return
 
         tape_data = program['tape']
         program_data = program['program']
