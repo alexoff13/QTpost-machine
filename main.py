@@ -1,5 +1,6 @@
 import sys
 
+from PyQt5 import QtCore
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QWidget, QToolTip,
                              QApplication, QPushButton, QTableWidget, QTableWidgetItem, QSpinBox, QGridLayout, QLabel,
@@ -18,6 +19,7 @@ class App(QWidget):
         self.tape = Tape(self)
         self.table_program = TableProgram(self, 10, 80)
         self.buttons = dict()
+        self.installEventFilter(self)
         self.initUI()
 
     def set_buttons(self, name: str, hint: str, x: int, y: int):
@@ -53,12 +55,17 @@ class App(QWidget):
         self.buttons['timer'].move(x, y)
 
         # установка ленты
-        self.tape.create_tape(self.size().width())
+        self.tape.draw(self.size().width())
 
         # установка таблицы с программой
         self.table_program.create_table()
 
         self.show()
+
+    def eventFilter(self, obj, event):
+        if event.type() == QtCore.QEvent.Resize:
+            self.tape.resize(self.size().width())
+        return super().eventFilter(obj, event)
 
 
 if __name__ == '__main__':

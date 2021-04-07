@@ -1,5 +1,4 @@
-from PyQt5 import QtCore
-from PyQt5.QtCore import Qt, QObject, QEvent
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QPushButton, QWidget, QGridLayout, QHBoxLayout
 
 
@@ -34,7 +33,7 @@ class Direction(QPushButton):
         self.setFixedSize(self.WIDTH, self.HEIGHT)
 
 
-class Tape(QWidget):
+class Tape(QGridLayout):
     __MARKED = '+'
     __NOT_MARKED = ''
 
@@ -43,20 +42,22 @@ class Tape(QWidget):
         self.__parent = parent
         self.__last_width = 0
         self.__tape = dict()
-        self.installEventFilter(self)
-        self.__layout = QGridLayout(self)
-
-        self.__cells = QHBoxLayout()
-        self.__cells.setSpacing(0)
-        self.__cells.setAlignment(Qt.AlignHCenter)
 
         self.__left = Direction(True)
+        self.__left.clicked.connect(self.go_left)
         self.__right = Direction(False)
+        self.__right.clicked.connect(self.go_right)
         self.__directions = QGridLayout()
         self.__directions.addWidget(self.__left, 0, 0, alignment=Qt.AlignLeft)
         self.__directions.addWidget(self.__right, 0, 1, alignment=Qt.AlignRight)
 
-    def __set_cell(self, i: int, is_marked: bool = False) -> None:
+        self.__left_cell = 0
+        self.__right_cell = 0
+        self.__cells = QHBoxLayout()
+        self.__cells.setSpacing(0)
+        self.__cells.setAlignment(Qt.AlignHCenter)
+
+    def __add_cell(self, i: int, is_marked: bool = False) -> None:
         self.__tape[i] = Cell(is_marked)
         self.__tape[i].clicked.connect(lambda: self.__on_cell_click(self.__tape[i]))
 
@@ -64,20 +65,12 @@ class Tape(QWidget):
     def cells(self) -> dict:
         return self.__tape
 
-    # TODO должно работать под любой размер ширины окна (чтобы создавалось нечетное количество ячеек)
-    def create_tape(self, max_width: int) -> None:
-        self.__last_width = max_width
-
-        current_width = self.__cells.sizeHint().width()
-        i = -((max_width - 30) // Cell.WIDTH // 2)
-        while current_width + Cell.WIDTH < max_width:
-            self.__set_cell(i)
-            self.__cells.addWidget(self.__tape[i])
-            current_width += Cell.WIDTH
-            i += 1
-
-        self.__layout.addLayout(self.__cells, 0, 0)
-        self.__layout.addLayout(self.__directions, 0, 0)
+    def draw(self, max_width: int) -> None:
+        self.__add_cell(0)
+        self.__cells.addWidget(self.__tape[0])
+        self.resize(max_width)
+        self.addLayout(self.__cells, 0, 0)
+        self.addLayout(self.__directions, 0, 0)
         self.__left.raise_()
         self.__right.raise_()
 
@@ -87,33 +80,71 @@ class Tape(QWidget):
 
     def set_from_file(self, file: list) -> None:
         for cell in file:
-            if self.__tape[cell[0]].is_marked != cell[1]:
+            if cell[0] not in self.__tape:
+                self.__add_cell(cell[0], cell[1])
+            elif self.__tape[cell[0]].is_marked != cell[1]:
                 self.__on_cell_click(self.__tape[cell[0]])
 
-    def eventFilter(self, obj: QObject, event: QEvent):
-        print('here')
-        if event.type() == QtCore.QEvent.Resize:
-            current_width = self.__parent.size().width()
-            print(current_width)
+    def __top_directions(self) -> None:
+        self.__left.raise_()
+        self.__right.raise_()
 
-            if current_width > self.__last_width:
-                while current_width - 2 * Cell.WIDTH - 10 > self.__cells.sizeHint().width():
-                    i = min(self.__tape.keys())
-                    self.__set_cell(i)
-                    self.__cells.insertWidget(0, self.__tape[i])
-                    self.left.raise_()
+    # сдвинуть ленту влево
+    def go_left(self) -> None:
+        self.__add_left_cell()
+        self.__delete_right_cell()
 
-                    i = max(self.__tape.keys())
-                    self.__set_cell(i)
-                    self.__cells.insertWidget(0, self.__tape[i])
-                    self.left.raise_()
-                    self.right.raise_()
+    # сдвинуть ленту вправо
+    def go_right(self) -> None:
+        self.__delete_left_cell()
+        self.__add_right_cell()
 
-            elif current_width < self.__last_width:
-                while current_width <= 20 + self.__cells.sizeHint().width():
-                    self.__cells.removeWidget(self.__tape.pop(min(self.__tape.keys())))
-                    self.__cells.removeWidget(self.__tape.pop(max(self.__tape.keys())))
+    # узнать состояние каретки
+    def is_carriage_marked(self) -> bool:
+        return self.__tape[(self.__left_cell + self.__right_cell) // 2].is_marked
 
-            self.__last_width = current_width
+    # изверсировать состояние каретки
+    def inverse_carriage(self) -> None:
+        self.__tape[(self.__left_cell + self.__right_cell) // 2].click()
 
-        return super().eventFilter(obj, event)
+    def __add_right_cell(self) -> None:
+        self.__right_cell += 1
+        if self.__right_cell not in self.__tape:
+            self.__add_cell(self.__right_cell)
+        self.__cells.addWidget(self.__tape[self.__right_cell])
+        self.__top_directions()
+
+    def __add_left_cell(self) -> None:
+        self.__left_cell -= 1
+        if self.__left_cell not in self.__tape:
+            self.__add_cell(self.__left_cell)
+        self.__cells.insertWidget(0, self.__tape[self.__left_cell])
+        self.__top_directions()
+
+    def __delete_right_cell(self) -> None:
+        if self.__tape[self.__right_cell].is_marked:
+            self.__cells.removeWidget(self.__tape[self.__right_cell])
+        else:
+            self.__cells.removeWidget(self.__tape.pop(self.__right_cell))
+        self.__right_cell -= 1
+
+    def __delete_left_cell(self) -> None:
+        if self.__tape[self.__left_cell].is_marked:
+            self.__cells.removeWidget(self.__tape[self.__left_cell])
+        else:
+            self.__cells.removeWidget(self.__tape.pop(self.__left_cell))
+        self.__left_cell += 1
+
+    def resize(self, current_width: int) -> None:
+        tape_width = self.__cells.sizeHint().width()
+        if current_width > self.__last_width:
+            while current_width - 2 * Cell.WIDTH - 15 > tape_width:
+                self.__add_left_cell()
+                self.__add_right_cell()
+                tape_width += 2 * Cell.WIDTH
+        elif current_width < self.__last_width:
+            while current_width <= 22 + tape_width:
+                self.__delete_left_cell()
+                self.__delete_right_cell()
+                tape_width -= 2 * Cell.WIDTH
+        self.__last_width = current_width
