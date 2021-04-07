@@ -15,7 +15,7 @@ class App(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.tape = Tape(self, 10, 50)
+        self.tape = Tape(self)
         self.table_program = TableProgram(self, 10, 80)
         self.buttons = dict()
         self.initUI()
@@ -31,6 +31,10 @@ class App(QWidget):
         self.buttons['Load'].clicked.connect(lambda: Loader.load_program(self))
 
     def initUI(self):
+        # установка параметров окна
+        self.setGeometry(200, 200, 900, 500)
+        self.setWindowTitle('Post Machine')
+
         # установка верхних главных кнопок
         QToolTip.setFont(QFont('SansSerif', 10))
         self.setToolTip('This is a <b>QWidget</b> widget')
@@ -49,14 +53,10 @@ class App(QWidget):
         self.buttons['timer'].move(x, y)
 
         # установка ленты
-        self.tape.show()
+        self.tape.create_tape(self.size().width())
 
         # установка таблицы с программой
         self.table_program.create_table()
-
-        # установка параметров окна
-        self.setGeometry(200, 200, 900, 500)
-        self.setWindowTitle('Post Machine')
 
         self.show()
 

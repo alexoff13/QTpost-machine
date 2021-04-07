@@ -15,11 +15,6 @@ class TableProgram:
         self.table.setRowCount(4)
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["Command", "Jump to state", "Comment"])
-        # for i in range(10):
-        #     if i >= self.table.rowCount():
-        #         self.table.setRowCount(i + 1)
-        #     self.add_row(i, 0, 'a')
-        #     self.add_row(i, 1, 'a')
         self.table.cellClicked.connect(lambda: self.row_column_clicked())
         self.table.resize(800, 600)
         self.table.move(self.__x, self.__y)
