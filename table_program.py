@@ -36,4 +36,7 @@ class TableProgram:
             if index >= self.table.rowCount():
                 self.table.setRowCount(index + 1)
             for i in range(3):
-                self.add_row(index, i, file[str(index)][i])
+                try:
+                    self.add_row(index, i, file[str(index)][i])
+                except:
+                    self.add_row(index, i, file[index][i])

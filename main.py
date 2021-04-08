@@ -1,12 +1,14 @@
 import sys
+import threading
 
 from PyQt5 import QtCore
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QWidget, QToolTip,
                              QApplication, QPushButton, QTableWidget, QTableWidgetItem, QSpinBox, QGridLayout, QLabel,
-                             QDoubleSpinBox)
-
-import post_machine_logic
+                             QDoubleSpinBox, QMainWindow)
+from PyQt5 import QtGui
+from commands import Runner
 from table_program import TableProgram
 from tape import Tape
 from utils.loader import Loader
@@ -15,11 +17,22 @@ from utils.saver import Saver
 
 class App(QWidget):
 
+    Signal_inverse_carriage = QtCore.pyqtSignal()
+    Signal_inverse_carriage_false = QtCore.pyqtSignal()
+    Signal_go_right = QtCore.pyqtSignal()
+    Signal_go_left = QtCore.pyqtSignal()
+
     def __init__(self):
+
         super().__init__()
         self.tape = Tape(self)
         self.table_program = TableProgram(self, 10, 80)
         self.buttons = dict()
+
+        self.Signal_inverse_carriage.connect(lambda: self.tape.inverse_carriage())
+        self.Signal_inverse_carriage_false.connect(lambda: self.tape.inverse_carriage(False))
+        self.Signal_go_right.connect(lambda: self.tape.go_right())
+        self.Signal_go_left.connect(lambda: self.tape.go_left())
         self.installEventFilter(self)
         self.initUI()
 
@@ -32,7 +45,18 @@ class App(QWidget):
     def set_actions_buttons(self):
         self.buttons['Save'].clicked.connect(lambda: Saver.save_program(self))
         self.buttons['Load'].clicked.connect(lambda: Loader.load_program(self))
-        self.buttons['Start'].clicked.connect(lambda: post_machine_logic.run_program(self))
+        self.buttons['Start'].clicked.connect(lambda: self.run_program())
+        self.buttons['Stop'].clicked.connect(lambda : self.stop_program())
+
+    def run_program(self):
+        self.runner = Runner(self)
+        self.runner.start()
+
+    def stop_program(self):
+        program = self.runner.program
+        self.runner.terminate()
+        Loader.load_program_from_dict(program, self)
+        # self.runner.wait()
 
     def initUI(self):
         # установка параметров окна

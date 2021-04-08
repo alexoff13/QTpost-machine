@@ -1,67 +1,65 @@
-from threading import Thread
 from time import sleep
 
-from main import App
+from PyQt5.QtCore import QThread, pyqtSignal
+
+# from main import App
 from utils import Saver
-from utils.loader import Loader
+
+# ToDO реализовать вопрос
+class Runner(QThread):
+
+    def __init__(self, app):
+        super().__init__()
+        self.app = app
+        self.commands = {
+            '+': self.set_a_label,
+            'x': self.reset_a_label,
+            '>': self.go_to_right,
+            '<': self.go_to_left,
+            '?': self.func,
+            '!': self.exit_,
+        }
+
+    @staticmethod
+    def func(str1):
+        pass
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        self.program = Saver.save_program_to_dict(self.app)
+        i = 0
+        while i != -1:
+            sleep(0.1)
+            print(i)
+            try:
+                i = self.commands[self.app.table_program.table.item(i, 0).text()](
+                    self.app, self.app.table_program.table.item(i, 1).text())
+            except:
+                break
 
 
-def func(a):
-    pass
+    @staticmethod
+    def set_a_label(app, to_state: str) -> int:
+        app.Signal_inverse_carriage.emit()
+        return int(to_state) - 1
 
+    @staticmethod
+    def reset_a_label(app, to_state: str) -> int:
+        app.Signal_inverse_carriage_false.emit()
+        return int(to_state) - 1
 
-def set_a_label(to_state: str, app: App) -> int:
-    app.tape.inverse_carriage()
-    print('set_a_label', int(to_state))
-    return int(to_state) - 1
+    @staticmethod
+    def go_to_right(app, to_state: str) -> int:
+        app.Signal_go_right.emit()
+        return int(to_state) - 1
 
+    @staticmethod
+    def go_to_left(app, to_state: str) -> int:
+        app.Signal_go_left.emit()
+        return int(to_state) - 1
 
-def reset_a_label(to_state: str, app: App) -> int:
-    app.tape.inverse_carriage(need_to_mark=False)
-    return int(to_state) - 1
-
-
-def go_to_right(to_state: str, app: App) -> int:
-    app.tape.go_right()
-    print('go_to right', int(to_state))
-    return int(to_state) - 1
-
-
-def go_to_left(to_state: str, app: App) -> int:
-    app.tape.go_left()
-    return int(to_state) - 1
-
-
-def exit(to_state: str, app: App) -> int:
-    return -1
-
-
-commands = {
-    '+': set_a_label,
-    'x': reset_a_label,
-    '>': go_to_right,
-    '<': go_to_left,
-    '?': func,
-    '!': exit,
-}
-
-
-def run_program(app: App):
-    th = Thread(target=run_program_, args=(app, ))
-    th.start()
-    # run_program_(app)
-
-
-def run_program_(app: App):
-    program = Saver.save_program_to_dict(app)
-    i = 0
-    while i != -1:
-        sleep(0.5)
-        print(i)
-        try:
-            i = commands[app.table_program.table.item(i, 0).text()](app.table_program.table.item(i, 1).text(), app)
-        except:
-            break
-    # sleep(10)
-    # Loader.load_program_from_dict(program, app)
-
+    @staticmethod
+    def exit_(app, to_state: str) -> int:
+        return -1
