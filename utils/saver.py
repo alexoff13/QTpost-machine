@@ -18,10 +18,12 @@ class Saver:
 
     @staticmethod
     def save_program_to_dict(app):
-        cells = app.tape.cells
-        states_cells = list()
-        for index in cells.keys():
-            states_cells.append([index, cells[index].is_marked])
+        tape_elements = app.tape.tape_elements
+
+        tape_data = dict(carriage=app.tape.get_carriage_index(), marked_cells=list())
+        for index in tape_elements:
+            if tape_elements[index].cell.is_marked:
+                tape_data['marked_cells'].append(index)
 
         table_data = dict()
         count_rows = app.table_program.table.rowCount()
@@ -36,7 +38,7 @@ class Saver:
             table_data[i] = [command, jump_state, comment]
 
         program = {
-            'tape': states_cells,
+            'tape': tape_data,
             'program': table_data,
         }
 
