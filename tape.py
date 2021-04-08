@@ -107,9 +107,11 @@ class Tape(QGridLayout):
     def is_carriage_marked(self) -> bool:
         return self.__tape[self.get_carriage_index()].is_marked
 
-    # извертировать состояние каретки
-    def inverse_carriage(self) -> None:
-        self.__tape[(self.__left_cell + self.__right_cell) // 2].click()
+    # инвертировать состояние каретки
+    def inverse_carriage(self, need_to_mark: bool = True) -> None:
+        if (not self.is_carriage_marked() and need_to_mark) \
+                or (self.is_carriage_marked() and not need_to_mark):
+            self.__tape[(self.__left_cell + self.__right_cell) // 2].click()
 
     def reset(self) -> None:
         pass

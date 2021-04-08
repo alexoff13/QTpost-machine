@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (QWidget, QToolTip,
                              QApplication, QPushButton, QTableWidget, QTableWidgetItem, QSpinBox, QGridLayout, QLabel,
                              QDoubleSpinBox)
 
+import post_machine_logic
 from table_program import TableProgram
 from tape import Tape
 from utils.loader import Loader
@@ -31,6 +32,7 @@ class App(QWidget):
     def set_actions_buttons(self):
         self.buttons['Save'].clicked.connect(lambda: Saver.save_program(self))
         self.buttons['Load'].clicked.connect(lambda: Loader.load_program(self))
+        self.buttons['Start'].clicked.connect(lambda: post_machine_logic.run_program(self))
 
     def initUI(self):
         # установка параметров окна

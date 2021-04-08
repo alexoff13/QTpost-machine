@@ -2,8 +2,6 @@ import json
 
 from PyQt5.QtWidgets import QFileDialog
 
-from tape import Tape
-
 
 class Loader:
     @staticmethod
@@ -14,10 +12,12 @@ class Loader:
                 program = json.load(fin)
         except:
             return
+        Loader.load_program_from_dict(program, app)
 
+    @staticmethod
+    def load_program_from_dict(program, app):
         tape_data = program['tape']
         program_data = program['program']
 
         app.tape.set_from_file(tape_data)
         app.table_program.set_from_file(program_data)
-
