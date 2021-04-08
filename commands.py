@@ -16,13 +16,9 @@ class Runner(QThread):
             'x': self.reset_a_label,
             '>': self.go_to_right,
             '<': self.go_to_left,
-            '?': self.func,
+            '?': self.select_a_state,
             '!': self.exit_,
         }
-
-    @staticmethod
-    def func(str1):
-        pass
 
     def __del__(self):
         self.wait()
@@ -59,6 +55,11 @@ class Runner(QThread):
     def go_to_left(app, to_state: str) -> int:
         app.Signal_go_left.emit()
         return int(to_state) - 1
+
+    @staticmethod
+    def select_a_state(app, states: str):
+        state1, state2 = states.split()
+        return int(state2) - 1 if app.tape.is_carriage_marked() else int(state1) - 1
 
     @staticmethod
     def exit_(app, to_state: str) -> int:

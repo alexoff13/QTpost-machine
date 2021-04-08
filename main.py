@@ -29,10 +29,11 @@ class App(QWidget):
         self.table_program = TableProgram(self, 10, 80)
         self.buttons = dict()
 
-        self.Signal_inverse_carriage.connect(lambda: self.tape.inverse_carriage())
-        self.Signal_inverse_carriage_false.connect(lambda: self.tape.inverse_carriage(False))
+        self.Signal_inverse_carriage.connect(lambda: self.tape.mark_carriage())
+        self.Signal_inverse_carriage_false.connect(lambda: self.tape.unmark_carriage())
         self.Signal_go_right.connect(lambda: self.tape.go_right())
         self.Signal_go_left.connect(lambda: self.tape.go_left())
+        self.runner = Runner(self)
         self.installEventFilter(self)
         self.initUI()
 
@@ -49,7 +50,6 @@ class App(QWidget):
         self.buttons['Stop'].clicked.connect(lambda : self.stop_program())
 
     def run_program(self):
-        self.runner = Runner(self)
         self.runner.start()
 
     def stop_program(self):
