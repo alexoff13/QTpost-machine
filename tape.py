@@ -99,13 +99,21 @@ class Tape(QGridLayout):
         self.__delete_left_cell()
         self.__add_right_cell()
 
+    # узнать, на какой позиции стоит каретка
+    def get_carriage_index(self) -> int:
+        return (self.__left_cell + self.__right_cell) // 2
+
     # узнать состояние каретки
     def is_carriage_marked(self) -> bool:
-        return self.__tape[(self.__left_cell + self.__right_cell) // 2].is_marked
+        return self.__tape[self.get_carriage_index()].is_marked
 
-    # изверсировать состояние каретки
+    # извертировать состояние каретки
     def inverse_carriage(self) -> None:
         self.__tape[(self.__left_cell + self.__right_cell) // 2].click()
+
+    def reset(self) -> None:
+        pass
+        # TODO ладно, сделаешь
 
     def __add_right_cell(self) -> None:
         self.__right_cell += 1
