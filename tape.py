@@ -12,7 +12,7 @@ class Index(QLabel):
         self.setAlignment(Qt.AlignHCenter)
 
     def set_as_carriage(self) -> None:
-        self.setStyleSheet("font-weight: 700; color: blue;")
+        self.setStyleSheet("font-weight: 500; font-size: 7pt; color: blue;")
 
     def set_as_ordinary(self) -> None:
         self.setStyleSheet("font-weight: 300; font-size: 7pt;")
