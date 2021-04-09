@@ -60,9 +60,9 @@ class Runner(QThread):
         app.Signal_go_left.emit()
         return int(to_state) - 1
 
-    @staticmethod
-    def select_a_state(app, states: str):
+    def select_a_state(self, app, states: str):
         state1, state2 = states.split()
+        self.complete_event = True
         return int(state2) - 1 if app.tape.is_carriage_marked() else int(state1) - 1
 
     @staticmethod
