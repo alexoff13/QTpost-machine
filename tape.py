@@ -12,7 +12,7 @@ class Index(QLabel):
         self.setAlignment(Qt.AlignHCenter)
 
     def set_as_carriage(self) -> None:
-        self.setStyleSheet("font-weight: 700;")
+        self.setStyleSheet("font-weight: 700; color: blue;")
 
     def set_as_ordinary(self) -> None:
         self.setStyleSheet("font-weight: 300;")
@@ -53,8 +53,7 @@ class TapeElement(QWidget):
         self.box = QVBoxLayout(self)
         self.index = Index(parent, index, self.WIDTH, self.INDEX_HEIGHT)
         self.cell = Cell(parent, self.WIDTH, self.CELL_HEIGHT, is_marked)
-        if is_carriage:
-            self.index.set_as_carriage()
+        self.index.set_as_carriage() if is_carriage else self.index.set_as_ordinary()
         self.box.addWidget(self.index, 0)
         self.box.addWidget(self.cell, 0)
         self.box.setContentsMargins(0, 0, 0, 0)
@@ -84,6 +83,7 @@ class Tape(QGridLayout):
         self.__parent = parent
         self.__last_width = 0
         self.__tape_elements = dict()
+        self.setAlignment(Qt.AlignBottom)
 
         self.__left_direction = Direction(True)
         self.__left_direction.clicked.connect(self.go_left)
