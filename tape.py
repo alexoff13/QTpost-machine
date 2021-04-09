@@ -12,14 +12,14 @@ class Index(QLabel):
         self.setAlignment(Qt.AlignHCenter)
 
     def set_as_carriage(self) -> None:
-        self.setStyleSheet("font-weight: 700;")
+        self.setStyleSheet("font-weight: 500; color: blue; font-size: 7pt;")
 
     def set_as_ordinary(self) -> None:
-        self.setStyleSheet("font-weight: 300;")
+        self.setStyleSheet("font-weight: 300; font-size: 7pt;")
 
 
 class Cell(QPushButton):
-    __MARKED = '+'
+    __MARKED = 'V'
     __NOT_MARKED = ''
 
     def __init__(self, parent: QWidget, width: int, height: int, is_marked: bool = False) -> None:
@@ -53,8 +53,7 @@ class TapeElement(QWidget):
         self.box = QVBoxLayout(self)
         self.index = Index(parent, index, self.WIDTH, self.INDEX_HEIGHT)
         self.cell = Cell(parent, self.WIDTH, self.CELL_HEIGHT, is_marked)
-        if is_carriage:
-            self.index.set_as_carriage()
+        self.index.set_as_carriage() if is_carriage else self.index.set_as_ordinary()
         self.box.addWidget(self.index, 0)
         self.box.addWidget(self.cell, 0)
         self.box.setContentsMargins(0, 0, 0, 0)
@@ -84,6 +83,7 @@ class Tape(QGridLayout):
         self.__parent = parent
         self.__last_width = 0
         self.__tape_elements = dict()
+        self.setAlignment(Qt.AlignBottom)
 
         self.__left_direction = Direction(True)
         self.__left_direction.clicked.connect(self.go_left)
@@ -192,13 +192,17 @@ class Tape(QGridLayout):
 
     def __delete_right_tape_element(self) -> None:
         self.__tape_elements_layout.removeWidget(self.__tape_elements[self.__right_element])
-        if not self.__tape_elements[self.__right_element].cell.is_marked:
+        if self.__tape_elements[self.__right_element].cell.is_marked:
+            self.__tape_elements[self.__right_element] = None
+        else:
             self.__tape_elements.pop(self.__right_element)
         self.__right_element -= 1
 
     def __delete_left_tape_element(self) -> None:
         self.__tape_elements_layout.removeWidget(self.__tape_elements[self.__left_element])
-        if not self.__tape_elements[self.__left_element].cell.is_marked:
+        if self.__tape_elements[self.__left_element].cell.is_marked:
+            self.__tape_elements[self.__left_element] = None
+        else:
             self.__tape_elements.pop(self.__left_element)
         self.__left_element += 1
 
