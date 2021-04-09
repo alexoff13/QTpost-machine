@@ -13,10 +13,10 @@ from utils.saver import Saver
 
 
 class App(QWidget):
-    Signal_inverse_carriage = QtCore.pyqtSignal()
-    Signal_inverse_carriage_false = QtCore.pyqtSignal()
-    Signal_go_right = QtCore.pyqtSignal()
-    Signal_go_left = QtCore.pyqtSignal()
+    signal_mark_carriage = QtCore.pyqtSignal()
+    signal_unmark_carriage = QtCore.pyqtSignal()
+    signal_go_right = QtCore.pyqtSignal()
+    signal_go_left = QtCore.pyqtSignal()
 
     def __init__(self):
 
@@ -25,10 +25,10 @@ class App(QWidget):
         self.table_program = TableProgram(self, 10, 80)
         self.buttons = dict()
 
-        self.Signal_inverse_carriage.connect(lambda: self.tape.mark_carriage())
-        self.Signal_inverse_carriage_false.connect(lambda: self.tape.unmark_carriage())
-        self.Signal_go_right.connect(lambda: self.tape.go_right())
-        self.Signal_go_left.connect(lambda: self.tape.go_left())
+        self.signal_mark_carriage.connect(self.tape.mark_carriage)
+        self.signal_unmark_carriage.connect(self.tape.unmark_carriage)
+        self.signal_go_right.connect(self.tape.go_right)
+        self.signal_go_left.connect(self.tape.go_left)
         self.runner = Runner(self)
         self.installEventFilter(self)
         self.initUI()
@@ -42,8 +42,8 @@ class App(QWidget):
     def set_actions_buttons(self):
         self.buttons['Save'].clicked.connect(lambda: Saver.save_program(self))
         self.buttons['Load'].clicked.connect(lambda: Loader.load_program(self))
-        self.buttons['Start'].clicked.connect(lambda: self.run_program())
-        self.buttons['Stop'].clicked.connect(lambda: self.stop_program())
+        self.buttons['Start'].clicked.connect(self.run_program)
+        self.buttons['Stop'].clicked.connect(self.stop_program)
 
     def run_program(self):
         self.runner.start()

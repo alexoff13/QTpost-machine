@@ -5,8 +5,6 @@ from PyQt5.QtCore import QThread
 from utils import Saver
 
 
-
-
 class Runner(QThread):
 
     def __init__(self, app):
@@ -33,38 +31,37 @@ class Runner(QThread):
             if self.complete_event:
                 self.complete_event = False
                 try:
+                    # TODO добавить: если стейт пустой, то просто переход на следующую строку
                     i = self.commands[self.app.table_program.table.item(i, 0).text()](
-                        self.app, self.app.table_program.table.item(i, 1).text())
+                        self.app.table_program.table.item(i, 1).text())
+                    # TODO вставить в sleep значение крутилки
+                    # sleep()
                 except KeyError:
                     break
             else:
                 sleep(0.0001)
 
-    @staticmethod
-    def set_a_label(app, to_state: str) -> int:
-        app.Signal_inverse_carriage.emit()
+    def set_a_label(self, to_state: str) -> int:
+        self.app.signal_mark_carriage.emit()
         return int(to_state) - 1
 
-    @staticmethod
-    def reset_a_label(app, to_state: str) -> int:
-        app.Signal_inverse_carriage_false.emit()
+    def reset_a_label(self, to_state: str) -> int:
+        self.app.signal_unmark_carriage.emit()
         return int(to_state) - 1
 
-    @staticmethod
-    def go_to_right(app, to_state: str) -> int:
-        app.Signal_go_right.emit()
+    def go_to_right(self, to_state: str) -> int:
+        self.app.signal_go_right.emit()
         return int(to_state) - 1
 
-    @staticmethod
-    def go_to_left(app, to_state: str) -> int:
-        app.Signal_go_left.emit()
+    def go_to_left(self, to_state: str) -> int:
+        self.app.signal_go_left.emit()
         return int(to_state) - 1
 
-    @staticmethod
-    def select_a_state(app, states: str):
+    def select_a_state(self, states: str) -> int:
+        self.complete_event = True
         state1, state2 = states.split()
-        return int(state2) - 1 if app.tape.is_carriage_marked() else int(state1) - 1
+        return (int(state2) if self.app.tape.is_carriage_marked() else int(state1)) - 1
 
     @staticmethod
-    def exit_(app, to_state: str) -> int:
+    def exit_(to_state: str) -> int:
         return -1
