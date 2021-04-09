@@ -1,13 +1,10 @@
 import sys
-import threading
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QWidget, QToolTip,
-                             QApplication, QPushButton, QTableWidget, QTableWidgetItem, QSpinBox, QGridLayout, QLabel,
-                             QDoubleSpinBox, QMainWindow)
-from PyQt5 import QtGui
+                             QApplication, QPushButton, QDoubleSpinBox)
+
 from commands import Runner
 from table_program import TableProgram
 from tape import Tape
@@ -16,7 +13,6 @@ from utils.saver import Saver
 
 
 class App(QWidget):
-
     Signal_inverse_carriage = QtCore.pyqtSignal()
     Signal_inverse_carriage_false = QtCore.pyqtSignal()
     Signal_go_right = QtCore.pyqtSignal()
@@ -47,7 +43,7 @@ class App(QWidget):
         self.buttons['Save'].clicked.connect(lambda: Saver.save_program(self))
         self.buttons['Load'].clicked.connect(lambda: Loader.load_program(self))
         self.buttons['Start'].clicked.connect(lambda: self.run_program())
-        self.buttons['Stop'].clicked.connect(lambda : self.stop_program())
+        self.buttons['Stop'].clicked.connect(lambda: self.stop_program())
 
     def run_program(self):
         self.runner.start()

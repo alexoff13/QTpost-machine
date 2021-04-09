@@ -141,6 +141,7 @@ class Tape(QGridLayout):
         self.__add_left_tape_element()
         self.__delete_right_tape_element()
         self.__tape_elements[self.get_carriage_index()].set_as_carriage()
+        self.__parent.runner.complete_event = True
 
     # сдвинуть ленту вправо
     def go_right(self) -> None:
@@ -148,6 +149,7 @@ class Tape(QGridLayout):
         self.__delete_left_tape_element()
         self.__add_right_tape_element()
         self.__tape_elements[self.get_carriage_index()].set_as_carriage()
+        self.__parent.runner.complete_event = True
 
     # узнать, на какой позиции стоит каретка
     def get_carriage_index(self) -> int:
@@ -159,9 +161,11 @@ class Tape(QGridLayout):
 
     def mark_carriage(self) -> None:
         self.__tape_elements[self.get_carriage_index()].cell.mark()
+        self.__parent.runner.complete_event = True
 
     def unmark_carriage(self) -> None:
         self.__tape_elements[self.get_carriage_index()].cell.unmark()
+        self.__parent.runner.complete_event = True
 
     def __clear(self) -> None:
         for index in range(self.__left_element, self.__right_element + 1, 1):

@@ -1,11 +1,12 @@
 from time import sleep
 
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread
 
-# from main import App
 from utils import Saver
 
-# ToDO реализовать вопрос
+
+
+
 class Runner(QThread):
 
     def __init__(self, app):
@@ -19,6 +20,8 @@ class Runner(QThread):
             '?': self.select_a_state,
             '!': self.exit_,
         }
+        self.program = Saver.save_program_to_dict(self.app)
+        self.complete_event = True
 
     def __del__(self):
         self.wait()
@@ -27,14 +30,15 @@ class Runner(QThread):
         self.program = Saver.save_program_to_dict(self.app)
         i = 0
         while i != -1:
-            sleep(0.1)
-            print(i)
-            try:
-                i = self.commands[self.app.table_program.table.item(i, 0).text()](
-                    self.app, self.app.table_program.table.item(i, 1).text())
-            except:
-                break
-
+            if self.complete_event:
+                self.complete_event = False
+                try:
+                    i = self.commands[self.app.table_program.table.item(i, 0).text()](
+                        self.app, self.app.table_program.table.item(i, 1).text())
+                except KeyError:
+                    break
+            else:
+                sleep(0.0001)
 
     @staticmethod
     def set_a_label(app, to_state: str) -> int:
