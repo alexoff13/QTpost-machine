@@ -15,11 +15,11 @@ class Index(QLabel):
         self.setStyleSheet("font-weight: 700; color: blue;")
 
     def set_as_ordinary(self) -> None:
-        self.setStyleSheet("font-weight: 300;")
+        self.setStyleSheet("font-weight: 300; font-size: 7pt;")
 
 
 class Cell(QPushButton):
-    __MARKED = '+'
+    __MARKED = 'V'
     __NOT_MARKED = ''
 
     def __init__(self, parent: QWidget, width: int, height: int, is_marked: bool = False) -> None:
@@ -192,13 +192,17 @@ class Tape(QGridLayout):
 
     def __delete_right_tape_element(self) -> None:
         self.__tape_elements_layout.removeWidget(self.__tape_elements[self.__right_element])
-        if not self.__tape_elements[self.__right_element].cell.is_marked:
+        if self.__tape_elements[self.__right_element].cell.is_marked:
+            self.__tape_elements[self.__right_element] = None
+        else:
             self.__tape_elements.pop(self.__right_element)
         self.__right_element -= 1
 
     def __delete_left_tape_element(self) -> None:
         self.__tape_elements_layout.removeWidget(self.__tape_elements[self.__left_element])
-        if not self.__tape_elements[self.__left_element].cell.is_marked:
+        if self.__tape_elements[self.__left_element].cell.is_marked:
+            self.__tape_elements[self.__left_element] = None
+        else:
             self.__tape_elements.pop(self.__left_element)
         self.__left_element += 1
 
