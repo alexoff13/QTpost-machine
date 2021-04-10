@@ -5,11 +5,11 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QWidget, QToolTip,
                              QApplication, QPushButton, QDoubleSpinBox)
 
-from commands import Runner
+from post_machine_logic import Runner
 from table_program import TableProgram
 from tape import Tape
-from utils.loader import Loader
-from utils.saver import Saver
+from utils import Loader
+from utils import Saver
 
 
 class App(QWidget):
@@ -52,7 +52,6 @@ class App(QWidget):
         program = self.runner.program
         self.runner.terminate()
         Loader.load_program_from_dict(program, self)
-        # self.runner.wait()
 
     def initUI(self):
         # установка параметров окна
