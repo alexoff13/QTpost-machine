@@ -4,12 +4,15 @@ from PyQt5.QtWidgets import QPushButton, QWidget, QGridLayout, QHBoxLayout, QLab
 
 class Index(QLabel):
 
-    def __init__(self, parent: QWidget, index: int, width: int, height: int) -> None:
+    def __init__(self, parent: QWidget, index: int, width: int, height: int, is_carriage: bool = False) -> None:
         super().__init__(str(index), parent=parent)
-        self.width = width
-        self.height = height
-        self.setFixedSize(self.width, self.height)
+        self.__is_carriage = is_carriage
+        self.set_as_carriage() if is_carriage else self.set_as_ordinary()
+        self.setFixedSize(width, height)
         self.setAlignment(Qt.AlignHCenter)
+
+    def is_carriage(self) -> bool:
+        return self.__is_carriage
 
     def set_as_carriage(self) -> None:
         self.setStyleSheet("font-weight: 500; font-size: 7pt; color: blue;")
@@ -24,22 +27,23 @@ class Cell(QPushButton):
 
     def __init__(self, parent: QWidget, width: int, height: int, is_marked: bool = False) -> None:
         super().__init__(self.__MARKED if is_marked else self.__NOT_MARKED, parent=parent)
-        self.width = width
-        self.height = height
-        self.is_marked = is_marked
-        self.setFixedSize(self.width, self.height)
+        self.__is_marked = is_marked
+        self.setFixedSize(width, height)
         self.clicked.connect(self.reverse_marking)
 
+    def is_marked(self) -> bool:
+        return self.__is_marked
+
     def reverse_marking(self) -> None:
-        self.is_marked = not self.is_marked
-        self.setText(self.__MARKED if self.is_marked else self.__NOT_MARKED)
+        self.__is_marked = not self.__is_marked
+        self.setText(self.__MARKED if self.__is_marked else self.__NOT_MARKED)
 
     def mark(self) -> None:
-        self.is_marked = True
+        self.__is_marked = True
         self.setText(self.__MARKED)
 
     def unmark(self) -> None:
-        self.is_marked = False
+        self.__is_marked = False
         self.setText(self.__NOT_MARKED)
 
 
@@ -50,19 +54,33 @@ class TapeElement(QWidget):
 
     def __init__(self, parent: QWidget, index, is_carriage: bool = False, is_marked: bool = False) -> None:
         super().__init__(parent)
-        self.box = QVBoxLayout(self)
-        self.index = Index(parent, index, self.WIDTH, self.INDEX_HEIGHT)
-        self.cell = Cell(parent, self.WIDTH, self.CELL_HEIGHT, is_marked)
-        self.index.set_as_carriage() if is_carriage else self.index.set_as_ordinary()
-        self.box.addWidget(self.index, 0)
-        self.box.addWidget(self.cell, 0)
-        self.box.setContentsMargins(0, 0, 0, 0)
+        self.__element = QVBoxLayout(self)
+        self.__index = Index(parent, index, self.WIDTH, self.INDEX_HEIGHT, is_carriage)
+        self.__cell = Cell(parent, self.WIDTH, self.CELL_HEIGHT, is_marked)
+        self.__element.addWidget(self.__index, 0)
+        self.__element.addWidget(self.__cell, 0)
+        self.__element.setContentsMargins(0, 0, 0, 0)
+
+    def is_carriage(self) -> bool:
+        return self.__index.is_carriage()
 
     def set_as_carriage(self) -> None:
-        self.index.set_as_carriage()
+        self.__index.set_as_carriage()
 
     def set_as_ordinary(self) -> None:
-        self.index.set_as_ordinary()
+        self.__index.set_as_ordinary()
+
+    def is_marked(self) -> bool:
+        return self.__cell.is_marked()
+
+    def reverse_marking(self) -> None:
+        self.__cell.reverse_marking()
+
+    def mark(self) -> None:
+        self.__cell.mark()
+
+    def unmark(self) -> None:
+        self.__cell.unmark()
 
 
 class Direction(QPushButton):
@@ -116,20 +134,18 @@ class Tape(QGridLayout):
         self.__tape_elements_layout.addWidget(self.__tape_elements[carriage_index])
         self.resize(max_width)
 
-    @staticmethod
-    def __on_cell_click(cell: Cell) -> None:
-        cell.click()
-
     # если до этого не будет вызываться draw, то всё полетит к херам
     def set_from_file(self, file: dict) -> None:
+        # полностью очистит элементы ленты и очистит self.__tape_elements
         self.__clear()
         self.__last_width -= 1
+        # отрисует все элементы ленты и заполнит self.__tape_elements
         self.draw(self.__last_width + 1, file['carriage'])
         for index in file['marked_cells']:
             if index not in self.__tape_elements:
-                self.__add_tape_element(index, is_marked=True)
+                self.__tape_elements[index] = None
             else:
-                self.__tape_elements[index].cell.mark()
+                self.__tape_elements[index].mark()
 
     def __raise_directions(self) -> None:
         self.__left_direction.raise_()
@@ -157,14 +173,14 @@ class Tape(QGridLayout):
 
     # узнать состояние каретки
     def is_carriage_marked(self) -> bool:
-        return self.__tape_elements[self.get_carriage_index()].cell.is_marked
+        return self.__tape_elements[self.get_carriage_index()].is_marked()
 
     def mark_carriage(self) -> None:
-        self.__tape_elements[self.get_carriage_index()].cell.mark()
+        self.__tape_elements[self.get_carriage_index()].mark()
         self.__parent.runner.complete_event = True
 
     def unmark_carriage(self) -> None:
-        self.__tape_elements[self.get_carriage_index()].cell.unmark()
+        self.__tape_elements[self.get_carriage_index()].unmark()
         self.__parent.runner.complete_event = True
 
     def __clear(self) -> None:
@@ -192,18 +208,24 @@ class Tape(QGridLayout):
 
     def __delete_right_tape_element(self) -> None:
         self.__tape_elements_layout.removeWidget(self.__tape_elements[self.__right_element])
-        if self.__tape_elements[self.__right_element].cell.is_marked:
-            self.__tape_elements[self.__right_element] = None
-        else:
-            self.__tape_elements.pop(self.__right_element)
+        try:
+            if self.__tape_elements[self.__right_element].is_marked():
+                self.__tape_elements[self.__right_element] = None
+            else:
+                self.__tape_elements.pop(self.__right_element)
+        except AttributeError:
+            pass
         self.__right_element -= 1
 
     def __delete_left_tape_element(self) -> None:
         self.__tape_elements_layout.removeWidget(self.__tape_elements[self.__left_element])
-        if self.__tape_elements[self.__left_element].cell.is_marked:
-            self.__tape_elements[self.__left_element] = None
-        else:
-            self.__tape_elements.pop(self.__left_element)
+        try:
+            if self.__tape_elements[self.__left_element].is_marked():
+                self.__tape_elements[self.__left_element] = None
+            else:
+                self.__tape_elements.pop(self.__left_element)
+        except AttributeError:
+            pass
         self.__left_element += 1
 
     def resize(self, current_width: int) -> None:

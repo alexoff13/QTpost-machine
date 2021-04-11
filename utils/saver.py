@@ -22,7 +22,7 @@ class Saver:
 
         tape_data = dict(carriage=app.tape.get_carriage_index(), marked_cells=list())
         for index in tape_elements:
-            if tape_elements[index].cell.is_marked:
+            if tape_elements[index] is None or tape_elements[index].is_marked():
                 tape_data['marked_cells'].append(index)
 
         table_data = dict()

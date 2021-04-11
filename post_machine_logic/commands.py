@@ -16,7 +16,7 @@ class Runner(QThread):
             '>': self.go_to_right,
             '<': self.go_to_left,
             '?': self.select_a_state,
-            '!': self.exit_,
+            '!': self.exit_
         }
         self.program = Saver.save_program_to_dict(self.app)
         self.complete_event = True
@@ -24,6 +24,7 @@ class Runner(QThread):
     def __del__(self):
         self.wait()
 
+    # TODO: лента и программа должны стать неактивными во время выполнения программы
     def run(self):
         self.program = Saver.save_program_to_dict(self.app)
         i = 0
@@ -60,7 +61,7 @@ class Runner(QThread):
     def select_a_state(self, states: str):
         state1, state2 = states.split()
         self.complete_event = True
-        return int(state2) - 1 if self.app.tape.is_carriage_marked() else int(state1) - 1
+        return (int(state2) if self.app.tape.is_carriage_marked() else int(state1)) - 1
 
     @staticmethod
     def exit_(to_state: str) -> int:
