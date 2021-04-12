@@ -1,9 +1,9 @@
 import sys
 
-from PyQt5 import QtCore
+from PyQt5 import QtCore, sip
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QWidget, QToolTip,
-                             QApplication, QPushButton, QDoubleSpinBox)
+                             QApplication, QPushButton, QDoubleSpinBox, QLayout)
 
 from post_machine_logic import Runner
 from table_program import TableProgram
@@ -50,7 +50,9 @@ class App(QWidget):
 
     def stop_program(self):
         program = self.runner.program
-        self.runner.terminate()
+        self.runner.stop_program = True
+        self.runner.quit()
+        self.runner.wait()
         Loader.load_program_from_dict(program, self)
 
     def initUI(self):

@@ -19,6 +19,7 @@ class Runner(QThread):
             '!': self.exit_
         }
         self.program = Saver.save_program_to_dict(self.app)
+        self.stop_program = False
         self.complete_event = True
 
     def __del__(self):
@@ -26,6 +27,7 @@ class Runner(QThread):
 
     # TODO: лента и программа должны стать неактивными во время выполнения программы
     def run(self):
+        self.stop_program = False
         self.program = Saver.save_program_to_dict(self.app)
         i = 0
         while i != -1:
@@ -33,14 +35,16 @@ class Runner(QThread):
                 self.complete_event = False
                 try:
                     # TODO добавить: если стейт пустой, то просто переход на следующую строку
-                    i = self.commands[self.app.table_program.table.item(i, 0).text()](
-                        self.app.table_program.table.item(i, 1).text())
+                    i = self.commands[self.app.table_program.table.item(i, 0).text()](self.app.table_program.table.item(i, 1).text())
                     # TODO вставить в sleep значение крутилки
                     # sleep()
                 except KeyError:
                     break
             else:
                 sleep(0.0001)
+
+            if self.stop_program:
+                i = -1
 
     def set_a_label(self, to_state: str) -> int:
         self.app.signal_mark_carriage.emit()
@@ -60,9 +64,10 @@ class Runner(QThread):
 
     def select_a_state(self, states: str):
         state1, state2 = states.split()
+        res = (int(state2) if self.app.tape.is_carriage_marked() else int(state1)) - 1
         self.complete_event = True
-        return (int(state2) if self.app.tape.is_carriage_marked() else int(state1)) - 1
+        return res
 
-    @staticmethod
-    def exit_(to_state: str) -> int:
+    def exit_(self, to_state: str) -> int:
+        self.complete_event = True
         return -1
