@@ -196,18 +196,15 @@ class Tape(QGridLayout):
         }
         self.set_from_file(reset_tape)
 
-
     def __add_right_tape_element(self) -> None:
         self.__right_element += 1
-        if self.__right_element not in self.__tape_elements:
-            self.__add_tape_element(self.__right_element)
+        self.__add_tape_element(self.__right_element, is_marked=self.__right_element in self.__tape_elements)
         self.__tape_elements_layout.addWidget(self.__tape_elements[self.__right_element])
         self.__raise_directions()
 
     def __add_left_tape_element(self) -> None:
         self.__left_element -= 1
-        if self.__left_element not in self.__tape_elements:
-            self.__add_tape_element(self.__left_element)
+        self.__add_tape_element(self.__left_element, is_marked=self.__left_element in self.__tape_elements)
         self.__tape_elements_layout.insertWidget(0, self.__tape_elements[self.__left_element])
         self.__raise_directions()
 
