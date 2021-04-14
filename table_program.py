@@ -28,6 +28,9 @@ class TableProgram:
             self.table.setRowCount(i + 1)
         self.table.setItem(i, j, QTableWidgetItem(value))
 
+    def reset(self):
+        self.table.setRowCount(1)
+
     def set_from_file(self, file: dict):
         indexes = list(file)
         indexes.sort()

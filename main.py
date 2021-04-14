@@ -1,9 +1,9 @@
 import sys
 
-from PyQt5 import QtCore, sip
+from PyQt5 import QtCore
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QWidget, QToolTip,
-                             QApplication, QPushButton, QDoubleSpinBox, QLayout)
+                             QApplication, QPushButton, QDoubleSpinBox)
 
 from post_machine_logic import Runner
 from table_program import TableProgram
@@ -44,6 +44,7 @@ class App(QWidget):
         self.buttons['Load'].clicked.connect(lambda: Loader.load_program(self))
         self.buttons['Start'].clicked.connect(self.run_program)
         self.buttons['Stop'].clicked.connect(self.stop_program)
+        self.buttons['Reset tape'].clicked.connect(lambda: self.tape.reset())
 
     def run_program(self):
         self.runner.start()
@@ -60,15 +61,23 @@ class App(QWidget):
         self.setGeometry(200, 200, 900, 500)
         self.setWindowTitle('Post Machine')
 
-        # установка верхних главных кнопок
         QToolTip.setFont(QFont('SansSerif', 10))
         self.setToolTip('This is a <b>QWidget</b> widget')
+
+        # установка ленты
+        self.tape.draw(self.size().width())
+
+        # установка таблицы с программой
+        self.table_program.create_table()
+
+        # установка верхних главных кнопок
         x, y = 10, 10
-        for name in ('Start', 'Debug', 'Stop', 'Save', 'Load'):
+        for name in ('Start', 'Debug', 'Stop', 'Save', 'Load', 'Reset tape'):
             self.set_buttons(name, name, x, y)
             x += 80
         # установка действий главных кнопок
         self.set_actions_buttons()
+
         # установка таймера
         self.buttons['timer'] = QDoubleSpinBox(self)
         self.buttons['timer'].setRange(0.1, 1)
@@ -76,12 +85,6 @@ class App(QWidget):
         self.buttons['timer'].setSingleStep(0.1)
         self.buttons['timer'].resize(80, 20)
         self.buttons['timer'].move(x, y)
-
-        # установка ленты
-        self.tape.draw(self.size().width())
-
-        # установка таблицы с программой
-        self.table_program.create_table()
 
         self.show()
 

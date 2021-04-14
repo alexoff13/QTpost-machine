@@ -18,6 +18,7 @@ class Loader:
     def load_program_from_dict(program, app):
         tape_data = program['tape']
         program_data = program['program']
-
+        app.tape.reset()
+        app.table_program.reset()
         app.tape.set_from_file(tape_data)
         app.table_program.set_from_file(program_data)

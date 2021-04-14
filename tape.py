@@ -189,8 +189,13 @@ class Tape(QGridLayout):
         self.__tape_elements.clear()
 
     def reset(self) -> None:
-        # TODO ладно, сделаешь
-        pass
+        # pass
+        reset_tape = {
+            "carriage": 0,
+            "marked_cells": []
+        }
+        self.set_from_file(reset_tape)
+
 
     def __add_right_tape_element(self) -> None:
         self.__right_element += 1
