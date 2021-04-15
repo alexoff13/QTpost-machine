@@ -64,7 +64,7 @@ class Runner(QThread):
 
     def select_a_state(self, states: str):
         state1, state2 = states.split()
-        res = (int(state2) if self.app.tape.is_carriage_marked() else int(state1)) - 1
+        res = (int(state2) if self.app.__tape.is_carriage_marked() else int(state1)) - 1
         self.complete_event = True
         return res
 

@@ -18,9 +18,9 @@ class Saver:
 
     @staticmethod
     def save_program_to_dict(app):
-        tape_elements = app.tape.tape_elements
+        tape_elements = app.__tape.tape_elements
 
-        tape_data = dict(carriage=app.tape.get_carriage_index(), marked_cells=list())
+        tape_data = dict(carriage=app.__tape.get_carriage_index(), marked_cells=list())
         for index in tape_elements:
             if tape_elements[index] is None or tape_elements[index].is_marked():
                 tape_data['marked_cells'].append(index)
