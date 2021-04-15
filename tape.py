@@ -1,5 +1,6 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QPushButton, QWidget, QGridLayout, QHBoxLayout, QLabel, QVBoxLayout
+from PyQt5.QtGui import QPalette
+from PyQt5.QtWidgets import QPushButton, QWidget, QHBoxLayout, QLabel, QVBoxLayout
 
 
 class Index(QLabel):
@@ -15,7 +16,7 @@ class Index(QLabel):
         return self.__is_carriage
 
     def set_as_carriage(self) -> None:
-        self.setStyleSheet("font-weight: 500; font-size: 7pt; color: blue;")
+        self.setStyleSheet("font-weight: 500; font-size: 7pt;")
 
     def set_as_ordinary(self) -> None:
         self.setStyleSheet("font-weight: 300; font-size: 7pt;")
@@ -54,11 +55,11 @@ class TapeElement(QWidget):
 
     def __init__(self, parent: QWidget, index, is_carriage: bool = False, is_marked: bool = False) -> None:
         super().__init__(parent)
-        self.__element = QVBoxLayout(self)
         self.__index = Index(parent, index, self.WIDTH, self.INDEX_HEIGHT, is_carriage)
         self.__cell = Cell(parent, self.WIDTH, self.CELL_HEIGHT, is_marked)
-        self.__element.addWidget(self.__index, 0)
-        self.__element.addWidget(self.__cell, 0)
+        self.__element = QVBoxLayout(self)
+        self.__element.addWidget(self.__index, 0, alignment=Qt.AlignBottom)
+        self.__element.addWidget(self.__cell, 0, alignment=Qt.AlignTop)
         self.__element.setContentsMargins(0, 0, 0, 0)
 
     def is_carriage(self) -> bool:
@@ -94,22 +95,24 @@ class Direction(QPushButton):
         self.setFixedSize(self.WIDTH, self.HEIGHT)
 
 
-class Tape(QGridLayout):
+# TODO: добавить методы disable и able (чтобы отключать возможность редактирования во время выполнения программы)
+
+
+class Tape(QWidget):
 
     def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
         self.__parent = parent
         self.__last_width = 0
         self.__tape_elements = dict()
-        self.setAlignment(Qt.AlignBottom)
 
         self.__left_direction = Direction(True)
         self.__left_direction.clicked.connect(self.go_left)
         self.__right_direction = Direction(False)
         self.__right_direction.clicked.connect(self.go_right)
-        self.__directions_layout = QGridLayout()
-        self.__directions_layout.addWidget(self.__left_direction, 0, 0, alignment=Qt.AlignLeft)
-        self.__directions_layout.addWidget(self.__right_direction, 0, 1, alignment=Qt.AlignRight)
+        self.__directions_layout = QHBoxLayout()
+        self.__directions_layout.addWidget(self.__left_direction, 0, alignment=Qt.AlignLeft)
+        self.__directions_layout.addWidget(self.__right_direction, 1, alignment=Qt.AlignRight)
 
         self.__left_element = 0
         self.__right_element = 0
@@ -117,8 +120,15 @@ class Tape(QGridLayout):
         self.__tape_elements_layout.setSpacing(0)
         self.__tape_elements_layout.setAlignment(Qt.AlignHCenter)
 
-        self.addLayout(self.__tape_elements_layout, 0, 0)
-        self.addLayout(self.__directions_layout, 0, 0)
+        self.__main_layout = QVBoxLayout()
+        self.__main_layout.addLayout(self.__tape_elements_layout, 0)
+        self.__main_layout.addLayout(self.__directions_layout, 0)
+
+        tape_background = QPalette()
+        tape_background.setColor(QPalette.Background, Qt.color0)
+        self.setAutoFillBackground(True)
+        self.setPalette(tape_background)
+        self.setLayout(self.__main_layout)
 
     def __add_tape_element(self, index: int, is_carriage: bool = False, is_marked: bool = False) -> None:
         self.__tape_elements[index] = TapeElement(self.__parent, index, is_carriage, is_marked)
@@ -157,7 +167,7 @@ class Tape(QGridLayout):
         self.__add_left_tape_element()
         self.__delete_right_tape_element()
         self.__tape_elements[self.get_carriage_index()].set_as_carriage()
-        self.__parent.runner.complete_event = True
+        self.__parent.runner.complete_event = True  # TODO: убрать этот тупой костыль
 
     # сдвинуть ленту вправо
     def go_right(self) -> None:
@@ -165,7 +175,7 @@ class Tape(QGridLayout):
         self.__delete_left_tape_element()
         self.__add_right_tape_element()
         self.__tape_elements[self.get_carriage_index()].set_as_carriage()
-        self.__parent.runner.complete_event = True
+        self.__parent.runner.complete_event = True  # TODO: убрать этот тупой костыль
 
     # узнать, на какой позиции стоит каретка
     def get_carriage_index(self) -> int:
@@ -177,11 +187,11 @@ class Tape(QGridLayout):
 
     def mark_carriage(self) -> None:
         self.__tape_elements[self.get_carriage_index()].mark()
-        self.__parent.runner.complete_event = True
+        self.__parent.runner.complete_event = True  # TODO: убрать этот тупой костыль
 
     def unmark_carriage(self) -> None:
         self.__tape_elements[self.get_carriage_index()].unmark()
-        self.__parent.runner.complete_event = True
+        self.__parent.runner.complete_event = True  # TODO: убрать этот тупой костыль
 
     def __clear(self) -> None:
         for index in range(self.__left_element, self.__right_element + 1, 1):
@@ -189,7 +199,6 @@ class Tape(QGridLayout):
         self.__tape_elements.clear()
 
     def reset(self) -> None:
-        # pass
         reset_tape = {
             "carriage": 0,
             "marked_cells": []
@@ -233,7 +242,7 @@ class Tape(QGridLayout):
     def resize(self, current_width: int) -> None:
         tape_width = self.__tape_elements_layout.sizeHint().width()
         if current_width > self.__last_width:
-            while current_width - 2 * TapeElement.WIDTH - 15 > tape_width:
+            while current_width - 2 * TapeElement.WIDTH - 20 > tape_width:
                 self.__add_left_tape_element()
                 self.__add_right_tape_element()
                 tape_width += 2 * TapeElement.WIDTH

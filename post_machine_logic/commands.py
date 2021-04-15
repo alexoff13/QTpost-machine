@@ -35,7 +35,7 @@ class Runner(QThread):
                 self.complete_event = False
                 try:
                     # TODO добавить: если стейт пустой, то просто переход на следующую строку
-                    i = self.commands[self.app.table_program.table.item(i, 0).text()](self.app.table_program.table.item(i, 1).text())
+                    i = self.commands[self.app.table_program.__column.item(i, 0).text()](self.app.table_program.__column.item(i, 1).text())
                     # TODO вставить в sleep значение крутилки
                     # sleep()
                 except KeyError:

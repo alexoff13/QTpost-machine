@@ -26,13 +26,13 @@ class Saver:
                 tape_data['marked_cells'].append(index)
 
         table_data = dict()
-        count_rows = app.table_program.table.rowCount()
+        count_rows = app.table_program.__column.rowCount()
         for i in range(count_rows):
             command, comment, jump_state = '', '', ''
             try:
-                command = app.table_program.table.item(i, 0).text()
-                jump_state = app.table_program.table.item(i, 1).text()
-                comment = app.table_program.table.item(i, 2).text()
+                command = app.table_program.__column.item(i, 0).text()
+                jump_state = app.table_program.__column.item(i, 1).text()
+                comment = app.table_program.__column.item(i, 2).text()
             except AttributeError:
                 pass
             table_data[i] = [command, jump_state, comment]
