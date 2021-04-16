@@ -1,10 +1,10 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QWidget, QMainWindow, QHBoxLayout, QColumnView, QPushButton, QVBoxLayout
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QColumnView, QPushButton, QVBoxLayout
 
 
 class TapeList(QWidget):
 
-    def __init__(self, parent: QMainWindow):
+    def __init__(self, parent: any = None):
         super().__init__(parent)
         self.__parent = parent
         self.__buttons_layout = QHBoxLayout()

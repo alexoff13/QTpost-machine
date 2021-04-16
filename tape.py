@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QPushButton, QWidget, QHBoxLayout, QLabel, QVBoxLayo
 
 class Index(QLabel):
 
-    def __init__(self, parent: QWidget, index: int, width: int, height: int, is_carriage: bool = False) -> None:
+    def __init__(self, index: int, width: int, height: int, is_carriage: bool = False, parent: any = None) -> None:
         super().__init__(str(index), parent=parent)
         self.__is_carriage = is_carriage
         self.set_as_carriage() if is_carriage else self.set_as_ordinary()
@@ -26,7 +26,7 @@ class Cell(QPushButton):
     __MARKED = 'V'
     __NOT_MARKED = ''
 
-    def __init__(self, parent: QWidget, width: int, height: int, is_marked: bool = False) -> None:
+    def __init__(self, width: int, height: int, is_marked: bool = False, parent: any = None) -> None:
         super().__init__(self.__MARKED if is_marked else self.__NOT_MARKED, parent=parent)
         self.__is_marked = is_marked
         self.setFixedSize(width, height)
@@ -53,10 +53,10 @@ class TapeElement(QWidget):
     INDEX_HEIGHT = 15
     CELL_HEIGHT = 35
 
-    def __init__(self, parent: QWidget, index, is_carriage: bool = False, is_marked: bool = False) -> None:
+    def __init__(self, index, is_carriage: bool = False, is_marked: bool = False, parent: any = None) -> None:
         super().__init__(parent)
-        self.__index = Index(parent, index, self.WIDTH, self.INDEX_HEIGHT, is_carriage)
-        self.__cell = Cell(parent, self.WIDTH, self.CELL_HEIGHT, is_marked)
+        self.__index = Index(index, self.WIDTH, self.INDEX_HEIGHT, is_carriage, parent)
+        self.__cell = Cell(self.WIDTH, self.CELL_HEIGHT, is_marked, parent)
         self.__element = QVBoxLayout(self)
         self.__element.addWidget(self.__index, 0, alignment=Qt.AlignBottom)
         self.__element.addWidget(self.__cell, 0, alignment=Qt.AlignTop)
@@ -90,8 +90,8 @@ class Direction(QPushButton):
     LEFT = '<'
     RIGHT = '>'
 
-    def __init__(self, is_left: bool):
-        super().__init__(self.LEFT if is_left else self.RIGHT)
+    def __init__(self, is_left: bool, parent: any = None):
+        super().__init__(self.LEFT if is_left else self.RIGHT, parent=parent)
         self.setFixedSize(self.WIDTH, self.HEIGHT)
 
 
@@ -100,10 +100,10 @@ class Direction(QPushButton):
 
 class Tape(QWidget):
 
-    def __init__(self, parent: QWidget) -> None:
+    def __init__(self, current_width: int, parent: any = None) -> None:
         super().__init__(parent)
         self.__parent = parent
-        self.__last_width = 0
+        self.__last_width = current_width - 1
         self.__tape_elements = dict()
 
         self.__left_direction = Direction(True)
@@ -128,10 +128,13 @@ class Tape(QWidget):
         tape_background.setColor(QPalette.Background, Qt.color0)
         self.setAutoFillBackground(True)
         self.setPalette(tape_background)
+        self.setFixedHeight(140)  # TODO: когда починится лента, то значение нужно уменьшить до 80
         self.setLayout(self.__main_layout)
 
+        self.draw(current_width)
+
     def __add_tape_element(self, index: int, is_carriage: bool = False, is_marked: bool = False) -> None:
-        self.__tape_elements[index] = TapeElement(self.__parent, index, is_carriage, is_marked)
+        self.__tape_elements[index] = TapeElement(index, is_carriage, is_marked, self.__parent)
 
     @property
     def tape_elements(self) -> dict:
