@@ -101,7 +101,7 @@ class Direction(QPushButton):
 class Tape(QWidget):
 
     def __init__(self, current_width: int, parent: any = None) -> None:
-        super().__init__(parent)
+        super().__init__(parent=parent)
         self.__parent = parent
         self.__last_width = current_width - 1
         self.__tape_elements = dict()

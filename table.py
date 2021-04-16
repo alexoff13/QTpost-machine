@@ -9,9 +9,10 @@ from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QWidget, QHBoxLayout
 class Table(QWidget):
 
     def __init__(self, parent: any = None) -> None:
-        super().__init__(parent)
+        super().__init__(parent=parent)
         self.__parent = parent
         self.__button_width = 50
+        self.__button_height = 25
 
         self.__insert = QPushButton()
         self.__remove = QPushButton()
@@ -61,7 +62,7 @@ class Table(QWidget):
 
     def __set_buttons(self) -> None:
         self.__buttons.setLayout(self.__buttons_layout)
-        self.__buttons.setFixedHeight(25)
+        self.__buttons.setFixedHeight(self.__button_height)
 
     def __set_table(self) -> None:
         self.__table.setRowCount(4)
