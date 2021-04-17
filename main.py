@@ -1,26 +1,33 @@
 import sys
 
-from PyQt5.QtCore import Qt, QEvent, pyqtSignal
+from PyQt5 import QtCore
+from PyQt5.QtCore import Qt, QEvent
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QWidget, QApplication, QDoubleSpinBox, QMainWindow, QAction,
                              QToolBar, QGridLayout, QSizePolicy, QSplitter, QLabel)
 
-from comment import Comment
 from post_machine_logic import Runner
-from table import Table
-from tape_list import TapeList
-from tape import Tape
-from utils import Loader
-from utils import Saver
+from utils import Saver, Loader
+from widgets.comment import Comment
+from widgets.table import Table
+from widgets.tape import Tape
+from widgets.tape_list import TapeList
 
 
 # TODO: во время (не) выполнения программы некоторые элементы должны быть не активными
 
 
 class App(QMainWindow):
+    # инициализация сигналов
+    # Не трогай сигналы
+    signal_mark_carriage = QtCore.pyqtSignal()
+    signal_unmark_carriage = QtCore.pyqtSignal()
+    signal_go_right = QtCore.pyqtSignal()
+    signal_go_left = QtCore.pyqtSignal()
 
     def __init__(self):
         super().__init__()
+
         # значения окна
         self.__x = 200
         self.__y = 200
@@ -52,25 +59,25 @@ class App(QMainWindow):
         self.__comment = Comment()
         self.__table = Table()
         self.__tape_list = TapeList()
-        self.__tape = Tape(self.__width)
-        # инициализация сигналов
-        self.__signal_mark_carriage = pyqtSignal()
-        self.__signal_unmark_carriage = pyqtSignal()
-        self.__signal_go_right = pyqtSignal()
-        self.__signal_go_left = pyqtSignal()
-        # инициализация раннера, сейвера и загрузчика
-        # TODO: пипец там инкапсуляции ноль, поэтому всё ломается мгновенно при создании раннера
-        # self.runner = Runner(self)
+        self.__tape = Tape(self.__width, self)
+
         # установка получения событий
         self.installEventFilter(self)
         # инициализация пользовательского интерфейса
         self.init_ui()
+        #  установка действий сигналам
+        self.__set_signals()
+
+        # инициализация раннера, сейвера и загрузчика
+        self.saver = Saver(self)
+        self.runner = Runner(self, self.saver.save_program_to_dict(self.__table.get_data(), self.__tape.get_data()),
+                             self.__timer.text())
 
     def __set_signals(self) -> None:
-        self.__signal_mark_carriage.connect(self.__tape.mark_carriage)
-        self.__signal_unmark_carriage.connect(self.__tape.unmark_carriage)
-        self.__signal_go_right.connect(self.__tape.go_right)
-        self.__signal_go_left.connect(self.__tape.go_left)
+        self.signal_mark_carriage.connect(self.__tape.mark_carriage)
+        self.signal_unmark_carriage.connect(self.__tape.unmark_carriage)
+        self.signal_go_right.connect(self.__tape.go_right)
+        self.signal_go_left.connect(self.__tape.go_left)
 
     def __set_run_action(self) -> None:
         self.__run_action.setIcon(QIcon('icons/run-button.png'))
@@ -82,21 +89,37 @@ class App(QMainWindow):
     def __set_stop_action(self) -> None:
         self.__stop_action.setIcon(QIcon('icons/stop-button.png'))
         self.__stop_action.setText('Stop')
-        self.__stop_action.setShortcut('Ctrl+Alt+S')
+        self.__stop_action.setShortcut('Ctrl+C')
         self.__stop_action.setStatusTip('Stop program')
         self.__stop_action.triggered.connect(self.stop_program)
 
     def __set_exit_action(self) -> None:
         self.__exit_action.setIcon(QIcon(''))
         self.__exit_action.setText('Exit')
-        self.__exit_action.setShortcut('Ctrl+E')
+        self.__exit_action.setShortcut('Ctrl+A+D')
         self.__exit_action.setStatusTip('Exit application')
         self.__exit_action.triggered.connect(self.close)
+
+    def __set_save_action(self) -> None:
+        self.__save_action.setIcon(QIcon(''))
+        self.__save_action.setText('Save')
+        self.__save_action.setShortcut('Ctrl+S')
+        self.__save_action.setStatusTip('Save program')
+        self.__save_action.triggered.connect(lambda: self.save_program())
+
+    def __set__load_action(self) -> None:
+        self.__load_action.setIcon(QIcon(''))
+        self.__load_action.setText('Load')
+        self.__load_action.setShortcut('Ctrl+E')
+        self.__load_action.setStatusTip('Save program')
+        self.__load_action.triggered.connect(lambda: self.load_program())
 
     def __set_actions(self) -> None:
         self.__set_run_action()
         self.__set_stop_action()
         # TODO: добавить остальные действия
+        self.__set_save_action()
+        self.__set__load_action()
         self.__set_exit_action()
 
     def __set_timer(self) -> None:
@@ -114,6 +137,8 @@ class App(QMainWindow):
         self.__file_menu.addAction(self.__run_action)
         self.__file_menu.addAction(self.__stop_action)
         self.__file_menu.addSeparator()
+        self.__file_menu.addAction(self.__save_action)
+        self.__file_menu.addAction(self.__load_action)
         self.__file_menu.addAction(self.__exit_action)
 
     def __set_menu_bar(self) -> None:
@@ -169,6 +194,8 @@ class App(QMainWindow):
     #     self.buttons['Reset tape'].clicked.connect(lambda: self.__tape.reset())
 
     def run_program(self):
+        self.runner = Runner(self, self.saver.save_program_to_dict(self.__tape.get_data(), self.__table.get_data()),
+                             self.__timer.text())
         self.runner.start()
 
     def stop_program(self):
@@ -176,7 +203,16 @@ class App(QMainWindow):
         self.runner.stop_program = True
         self.runner.quit()
         self.runner.wait()
-        Loader.load_program_from_dict(program, self)
+        self.__tape.set_from_file(program['tape'])
+        self.__table.set_from_file(program['program'])
+
+    def save_program(self):
+        self.saver.save_program(self.__tape.get_data(), self.__table.get_data())
+
+    def load_program(self):
+        program = Loader.load_program(self)
+        self.__tape.set_from_file(program['tape'])
+        self.__table.set_from_file(program['program'])
 
     def init_ui(self):
         self.setGeometry(self.__x, self.__y, self.__width, self.__height)
@@ -195,6 +231,9 @@ class App(QMainWindow):
 
     def log(self, message: str) -> None:
         self.statusBar().showMessage(message)
+
+    def return_state_carriage(self):
+        return self.__tape.is_carriage_marked()
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Resize:

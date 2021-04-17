@@ -98,6 +98,20 @@ class Table(QWidget):
     def reset(self):
         self.__table.setRowCount(1)
 
+    def get_data(self) -> dict:
+        table_data = dict()
+        count_rows = self.__table.rowCount()
+        for i in range(count_rows):
+            command, comment, jump_state = '', '', ''
+            try:
+                command = self.__table.item(i, 0).text()
+                jump_state = self.__table.item(i, 1).text()
+                comment = self.__table.item(i, 2).text()
+            except AttributeError:
+                pass
+            table_data[i] = [command, jump_state, comment]
+        return table_data
+
     def set_from_file(self, file: dict):
         indexes = list(file)
         indexes.sort()
@@ -107,6 +121,6 @@ class Table(QWidget):
                 self.__table.setRowCount(index + 1)
             for i in range(3):
                 try:
-                    self.__table.add_row(index, i, file[str(index)][i])
+                    self.add_row(index, i, file[str(index)][i])
                 except:  # TODO: сделать по канонам ексепшенов
-                    self.__table.add_row(index, i, file[index][i])
+                    self.add_row(index, i, file[index][i])

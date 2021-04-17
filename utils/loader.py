@@ -12,13 +12,6 @@ class Loader:
                 program = json.load(fin)
         except:
             return
-        Loader.load_program_from_dict(program, app)
+        return program
 
-    @staticmethod
-    def load_program_from_dict(program, app):
-        tape_data = program['tape']
-        program_data = program['program']
-        app.__tape.reset()
-        app.table_program.reset()
-        app.__tape.set_from_file(tape_data)
-        app.table_program.set_from_file(program_data)
+

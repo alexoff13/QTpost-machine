@@ -2,13 +2,12 @@ from time import sleep
 
 from PyQt5.QtCore import QThread
 
-from utils import Saver
-
 
 class Runner(QThread):
 
-    def __init__(self, app):
+    def __init__(self, app, program: dict, sleep_time: str):
         super().__init__()
+        self.sleep_time = float(sleep_time.replace(',', '.').split()[0]) - 0.05
         self.app = app
         self.commands = {
             '+': self.set_a_label,
@@ -18,7 +17,7 @@ class Runner(QThread):
             '?': self.select_a_state,
             '!': self.exit_
         }
-        self.program = Saver.save_program_to_dict(self.app)
+        self.program = program
         self.stop_program = False
         self.complete_event = True
 
@@ -28,16 +27,14 @@ class Runner(QThread):
     # TODO: лента и программа должны стать неактивными во время выполнения программы
     def run(self):
         self.stop_program = False
-        self.program = Saver.save_program_to_dict(self.app)
+        table = self.program['program']
         i = 0
         while i != -1:
             if self.complete_event:
                 self.complete_event = False
                 try:
-                    # TODO добавить: если стейт пустой, то просто переход на следующую строку
-                    i = self.commands[self.app.table_program.__column.item(i, 0).text()](self.app.table_program.__column.item(i, 1).text())
-                    # TODO вставить в sleep значение крутилки
-                    # sleep()
+                    i = self.commands[table[i][0]](table[i][1])
+                    sleep(self.sleep_time)
                 except KeyError:
                     break
             else:
@@ -64,7 +61,7 @@ class Runner(QThread):
 
     def select_a_state(self, states: str):
         state1, state2 = states.split()
-        res = (int(state2) if self.app.__tape.is_carriage_marked() else int(state1)) - 1
+        res = (int(state2) if self.app.return_state_carriage() else int(state1)) - 1
         self.complete_event = True
         return res
 

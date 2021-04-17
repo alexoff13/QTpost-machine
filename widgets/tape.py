@@ -170,7 +170,7 @@ class Tape(QWidget):
         self.__add_left_tape_element()
         self.__delete_right_tape_element()
         self.__tape_elements[self.get_carriage_index()].set_as_carriage()
-        self.__parent.runner.complete_event = True  # TODO: убрать этот тупой костыль
+        self.__parent.runner.complete_event = True  # TODO: убрать этот тупой костыль норм костыль, не трогай
 
     # сдвинуть ленту вправо
     def go_right(self) -> None:
@@ -190,7 +190,7 @@ class Tape(QWidget):
 
     def mark_carriage(self) -> None:
         self.__tape_elements[self.get_carriage_index()].mark()
-        self.__parent.runner.complete_event = True  # TODO: убрать этот тупой костыль
+        self.__parent.runner.complete_event = True # TODO: убрать этот тупой костыль
 
     def unmark_carriage(self) -> None:
         self.__tape_elements[self.get_carriage_index()].unmark()
@@ -241,6 +241,13 @@ class Tape(QWidget):
         except AttributeError:
             pass
         self.__left_element += 1
+
+    def get_data(self):
+        tape_data = dict(carriage=self.get_carriage_index(), marked_cells=list())
+        for index in self.__tape_elements:
+            if self.__tape_elements[index] is None or self.__tape_elements[index].is_marked():
+                tape_data['marked_cells'].append(index)
+        return tape_data
 
     def resize(self, current_width: int) -> None:
         tape_width = self.__tape_elements_layout.sizeHint().width()
