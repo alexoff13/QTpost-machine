@@ -4,7 +4,7 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QEvent
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QWidget, QApplication, QDoubleSpinBox, QMainWindow, QAction,
-                             QToolBar, QGridLayout, QSizePolicy, QSplitter, QLabel)
+                             QToolBar, QGridLayout, QSizePolicy, QSplitter, QLabel, QLineEdit)
 
 from post_machine_logic import Runner
 from utils import Saver, Loader
@@ -71,7 +71,7 @@ class App(QMainWindow):
         # инициализация раннера, сейвера и загрузчика
         self.saver = Saver(self)
         self.runner = Runner(self, self.saver.save_program_to_dict(self.__table.get_data(), self.__tape.get_data()),
-                             self.__timer.text())
+                             self.__timer)
 
     def __set_signals(self) -> None:
         self.signal_mark_carriage.connect(self.__tape.mark_carriage)
@@ -82,52 +82,53 @@ class App(QMainWindow):
     def __set_run_action(self) -> None:
         self.__run_action.setIcon(QIcon('icons/run-button.png'))
         self.__run_action.setText('Run')
-        self.__run_action.setShortcut('Ctrl+R')
-        self.__run_action.setStatusTip('Run program')
+        self.__run_action.setShortcut('F4')
+        # self.__run_action.setStatusTip('Run program')
         self.__run_action.triggered.connect(self.run_program)
 
     def __set_stop_action(self) -> None:
         self.__stop_action.setIcon(QIcon('icons/stop-button.png'))
         self.__stop_action.setText('Stop')
-        self.__stop_action.setShortcut('Ctrl+C')
-        self.__stop_action.setStatusTip('Stop program')
+        self.__stop_action.setShortcut('F5')
+        # self.__stop_action.setStatusTip('Stop program')
         self.__stop_action.triggered.connect(self.stop_program)
 
     def __set_exit_action(self) -> None:
         self.__exit_action.setIcon(QIcon(''))
         self.__exit_action.setText('Exit')
         self.__exit_action.setShortcut('Ctrl+A+D')
-        self.__exit_action.setStatusTip('Exit application')
+        # self.__exit_action.setStatusTip('Exit application')
         self.__exit_action.triggered.connect(self.close)
 
     def __set_save_action(self) -> None:
         self.__save_action.setIcon(QIcon(''))
         self.__save_action.setText('Save')
         self.__save_action.setShortcut('Ctrl+S')
-        self.__save_action.setStatusTip('Save program')
-        self.__save_action.triggered.connect(lambda: self.save_program())
+        # self.__save_action.setStatusTip('Save program')
+        self.__save_action.triggered.connect(self.save_program)
 
-    def __set__load_action(self) -> None:
+    def __set_load_action(self) -> None:
         self.__load_action.setIcon(QIcon(''))
         self.__load_action.setText('Load')
         self.__load_action.setShortcut('Ctrl+E')
-        self.__load_action.setStatusTip('Save program')
-        self.__load_action.triggered.connect(lambda: self.load_program())
+        # self.__load_action.setStatusTip('Load program')
+        self.__load_action.triggered.connect(self.load_program)
 
     def __set_actions(self) -> None:
         self.__set_run_action()
         self.__set_stop_action()
         # TODO: добавить остальные действия
         self.__set_save_action()
-        self.__set__load_action()
+        self.__set_load_action()
         self.__set_exit_action()
 
     def __set_timer(self) -> None:
-        self.__timer.setRange(0.05, 1)
+        self.__timer.setRange(0.00, 5)
         self.__timer.setDecimals(2)
         self.__timer.setSingleStep(0.05)
         self.__timer.setSuffix(' sec')
         self.__timer.setFixedSize(80, 20)
+        self.__timer.setLineEdit(QLineEdit())
 
     def __set_widgets(self) -> None:
         self.__set_timer()
@@ -186,16 +187,9 @@ class App(QMainWindow):
         self.__main_layout.addWidget(self.__tape)
         self.__main_layout.addWidget(self.__main_widget, 0, 0)
 
-    # def set_actions_buttons(self):
-    #     self.buttons['Save'].clicked.connect(lambda: Saver.save_program(self))
-    #     self.buttons['Load'].clicked.connect(lambda: Loader.load_program(self))
-    #     self.buttons['Start'].clicked.connect(self.run_program)
-    #     self.buttons['Stop'].clicked.connect(self.stop_program)
-    #     self.buttons['Reset tape'].clicked.connect(lambda: self.__tape.reset())
-
     def run_program(self):
         self.runner = Runner(self, self.saver.save_program_to_dict(self.__tape.get_data(), self.__table.get_data()),
-                             self.__timer.text())
+                             self.__timer)
         self.runner.start()
 
     def stop_program(self):

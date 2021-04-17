@@ -190,7 +190,7 @@ class Tape(QWidget):
 
     def mark_carriage(self) -> None:
         self.__tape_elements[self.get_carriage_index()].mark()
-        self.__parent.runner.complete_event = True # TODO: убрать этот тупой костыль
+        self.__parent.runner.complete_event = True  # TODO: убрать этот тупой костыль
 
     def unmark_carriage(self) -> None:
         self.__tape_elements[self.get_carriage_index()].unmark()
