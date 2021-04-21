@@ -38,7 +38,6 @@ class Table(QWidget):
         self.__shift_values_table(self.__table.currentRow())
         self.__table.insertRow(self.__table.currentRow())
 
-
     def __set_remove(self) -> None:
         self.__remove.setText('Remove')
         self.__remove.setToolTip('Remove the selected line')
@@ -47,8 +46,8 @@ class Table(QWidget):
 
     def __remove_row(self) -> None:
         if self.__table.currentRow() != 0:
-            self.__table.removeRow(self.__table.currentRow())
             self.__shift_values_table(self.__table.currentRow(), is_insert=False)
+            self.__table.removeRow(self.__table.currentRow())
 
     def __set_clear(self) -> None:
         self.__clear.setText('Clear')
@@ -73,16 +72,16 @@ class Table(QWidget):
         self.__shift_mode_on = not self.__shift_mode_on
 
     def __shift_values_table(self, current_row, is_insert=True) -> None:
-        # работает только при вставке, при удалении еще нет
-        print(current_row)
         if self.__shift_mode_on:
             for i in range(self.__table.rowCount()+1):
                 try:
                     current_state = int(self.__table.item(i, 1).text())
-                    if is_insert:
-                        if current_state - 1 >= current_row:
-                            print(str(current_state), " ", str(current_state + 1))
+                    if current_state - 1 >= current_row:
+                        print(str(current_state), " ", str(current_state + 1))
+                        if is_insert:
                             self.__table.item(i, 1).setText(str(current_state + 1))
+                        else:
+                            self.__table.item(i, 1).setText(str(current_state - 1))
                     else:
                         pass
                 except:
