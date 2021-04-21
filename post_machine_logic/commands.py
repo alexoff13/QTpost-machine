@@ -21,8 +21,8 @@ class Runner(QThread):
         self.stop_program = False
         self.complete_event = True
 
-    # def __del__(self):
-    #     self.wait()
+    def __del__(self):
+        self.wait()
 
     # TODO: лента и программа должны стать неактивными во время выполнения программы
     def run(self):
@@ -40,7 +40,7 @@ class Runner(QThread):
             else:
                 sleep(0.0001)
             if self.stop_program:
-                break
+                i = -1
 
     def set_a_label(self, to_state: str) -> int:
         self.app.signal_mark_carriage.emit()
