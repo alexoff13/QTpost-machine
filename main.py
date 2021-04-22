@@ -150,7 +150,6 @@ class App(QMainWindow):
         self.__set_timer()
         # TODO: понять почему левый и верхний ContentMargin не работают (нижний и правый работают)
         # ^ на всякий случай можно поставить спейсер, наверно
-        self.__toolbar = QToolBar()
         self.__toolbar.setMovable(False)
         self.__toolbar.addAction(self.__run_action)
         self.__toolbar.addAction(self.__stop_action)
@@ -230,6 +229,11 @@ class App(QMainWindow):
         return self.__tape.is_carriage_marked()
 
     def eventFilter(self, obj, event):
+        # TODO: хочу, чтоб окно становилось меньше, когда от фулскрина переходишь к обычному размеру окна
+        # if event.type() == QEvent.WindowStateChange:
+        #     if int(self.windowState()) == Qt.WindowNoState:
+        #         self.__tape.resize(self.__width)
+        #         self.resize(self.__width, self.__height)
         if event.type() == QEvent.Resize:
             self.__tape.resize(self.size().width())
         return super().eventFilter(obj, event)

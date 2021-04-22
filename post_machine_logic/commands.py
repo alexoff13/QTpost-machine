@@ -22,7 +22,8 @@ class Runner(QThread):
         self.complete_event = True
 
     def __del__(self):
-        self.wait()
+        if not self.complete_event:
+            self.wait()
 
     # TODO: лента и программа должны стать неактивными во время выполнения программы
     def run(self):

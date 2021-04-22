@@ -1,6 +1,6 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPalette
-from PyQt5.QtWidgets import QPushButton, QWidget, QHBoxLayout, QLabel, QVBoxLayout
+from PyQt5.QtWidgets import QPushButton, QWidget, QHBoxLayout, QLabel, QVBoxLayout, QGridLayout
 
 
 class Index(QLabel):
@@ -58,8 +58,10 @@ class TapeElement(QWidget):
         self.__index = Index(index, self.WIDTH, self.INDEX_HEIGHT, is_carriage, parent)
         self.__cell = Cell(self.WIDTH, self.CELL_HEIGHT, is_marked, parent)
         self.__element = QVBoxLayout(self)
-        self.__element.addWidget(self.__index, 0, alignment=Qt.AlignBottom)
-        self.__element.addWidget(self.__cell, 0, alignment=Qt.AlignTop)
+        self.__element.setSpacing(0)
+        self.__element.addWidget(self.__index, 0)
+        self.__element.addWidget(self.__cell, 0)
+        self.__element.setAlignment(Qt.AlignCenter)
         self.__element.setContentsMargins(0, 0, 0, 0)
 
     def is_carriage(self) -> bool:
@@ -85,8 +87,8 @@ class TapeElement(QWidget):
 
 
 class Direction(QPushButton):
-    WIDTH = TapeElement.WIDTH
-    HEIGHT = 60
+    WIDTH = 30
+    HEIGHT = 65
     LEFT = '<'
     RIGHT = '>'
 
@@ -118,17 +120,16 @@ class Tape(QWidget):
         self.__right_element = 0
         self.__tape_elements_layout = QHBoxLayout()
         self.__tape_elements_layout.setSpacing(0)
-        self.__tape_elements_layout.setAlignment(Qt.AlignHCenter)
 
-        self.__main_layout = QVBoxLayout()
-        self.__main_layout.addLayout(self.__tape_elements_layout, 0)
-        self.__main_layout.addLayout(self.__directions_layout, 0)
+        self.__main_layout = QGridLayout()
+        self.__main_layout.addLayout(self.__tape_elements_layout, 0, 0, alignment=Qt.AlignHCenter)
+        self.__main_layout.addLayout(self.__directions_layout, 0, 0)
 
         tape_background = QPalette()
         tape_background.setColor(QPalette.Background, Qt.color0)
         self.setAutoFillBackground(True)
         self.setPalette(tape_background)
-        self.setFixedHeight(140)  # TODO: когда починится лента, то значение нужно уменьшить до 80
+        self.setFixedHeight(85)
         self.setLayout(self.__main_layout)
 
         self.draw(current_width)
@@ -252,12 +253,12 @@ class Tape(QWidget):
     def resize(self, current_width: int) -> None:
         tape_width = self.__tape_elements_layout.sizeHint().width()
         if current_width > self.__last_width:
-            while current_width - 2 * TapeElement.WIDTH - 20 > tape_width:
+            while current_width > tape_width + 4 * TapeElement.WIDTH - 10:
                 self.__add_left_tape_element()
                 self.__add_right_tape_element()
                 tape_width += 2 * TapeElement.WIDTH
         elif current_width < self.__last_width:
-            while current_width <= 22 + tape_width:
+            while current_width < tape_width + 2 * TapeElement.WIDTH - 10:
                 self.__delete_left_tape_element()
                 self.__delete_right_tape_element()
                 tape_width -= 2 * TapeElement.WIDTH
