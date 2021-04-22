@@ -58,8 +58,8 @@ class App(QMainWindow):
         self.__v_splitter = QSplitter(Qt.Vertical)  # вертикальный сплиттер
         self.__comment = Comment()
         self.__table = Table()
-        self.__tape_list = TapeList()
         self.__tape = Tape(self.__width, self)
+        self.__tape_list = TapeList(self.__tape)
 
         # установка получения событий
         self.installEventFilter(self)
