@@ -45,7 +45,7 @@ class Table(QWidget):
         self.__remove.clicked.connect(lambda: self.__remove_row())
 
     def __remove_row(self) -> None:
-        if self.__table.currentRow() != 0:
+        if self.__table.rowCount() > 1:
             self.__shift_values_table(self.__table.currentRow(), is_insert=False)
             self.__table.removeRow(self.__table.currentRow())
 
