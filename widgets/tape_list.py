@@ -1,4 +1,5 @@
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QPushButton, QVBoxLayout, QListWidget, QListWidgetItem, \
     QAction, QAbstractItemView
 
@@ -26,7 +27,7 @@ class TapeList(QWidget):
         self.__buttons_layout = QHBoxLayout()
         self.__main_layout = QVBoxLayout()
 
-        self.draw()
+        self.__draw()
 
     def __set_add(self) -> None:
         self.__add.setText('Add')
@@ -72,20 +73,24 @@ class TapeList(QWidget):
         item = QListWidgetItem(name)
         # item.doubleClicked.connect(self.__choose_tape) TODO: не работает, уже погуглил - нужны сигналы
         self.__list.addItem(item)
+        self.__tape.reset()
         self.__tapes[name] = dict()
         self.__tapes[name]['widget'] = item
-        self.__tapes[name]['state'] = None  # получается стейт не сохраняется в начале
-        self.__active_tape = name
-        self.__tape.reset()
+        self.__tapes[name]['state'] = self.__tape.get_data()
+        self.__set_active(name)
 
     def __remove_item(self, name: str) -> None:
         # удаление ленты из списка и из собственного словаря
         self.__list.takeItem(self.__list.row(self.__tapes[name]['widget']))
         self.__tapes.pop(name)
 
+    def __set_inactive(self, name: str) -> None:
+        self.__tapes[name]['widget'].setFont(QFont('', italic=False))  # херовый фонт
+
     def __set_active(self, name: str) -> None:
         # TODO: лучше, чтоб айтем подсвечивался
         self.__active_tape = name
+        self.__tapes[name]['widget'].setFont(QFont('', italic=True))  # херовый фонт
         self.__tape.set_from_file(self.__tapes[name]['state'])
 
     def __set_list(self) -> None:
@@ -97,7 +102,7 @@ class TapeList(QWidget):
         self.__main_layout.addWidget(self.__list)
         self.__main_layout.setContentsMargins(0, 0, 0, 0)
 
-    def draw(self) -> None:
+    def __draw(self) -> None:
         self.__set_add()
         self.__set_remove()
         self.__set_clear()
@@ -108,6 +113,7 @@ class TapeList(QWidget):
         self.setLayout(self.__main_layout)
 
     def __on_add_click(self) -> None:
+        self.__set_inactive(self.__active_tape)
         self.__add_item()
         self.__tape.reset()
 
@@ -119,15 +125,15 @@ class TapeList(QWidget):
         # делаем активной последюю ленту, если она есть
         if (count := self.__list.count()) > 0:
             self.__set_active(self.__list.item(count - 1).text())
-        # иначе создаем ещё одну
+        # всегда должна быть хотя бы одна лента, даже если все ленты были удалены
         else:
             self.__add_item()
 
     def save_active_tape(self) -> None:
-        if self.__active_tape is not None:
+        if self.__active_tape in self.__tapes:
             self.__tapes[self.__active_tape]['state'] = self.__tape.get_data()
 
     def __choose_tape(self) -> None:
         pass
-        # if (name :=self.__list.selectedItem().text()) != self.__active_tape:
+        # if (name := self.__list.selectedItem().text()) != self.__active_tape:
         #     self.__set_active(name)

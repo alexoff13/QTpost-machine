@@ -252,6 +252,7 @@ class Tape(QWidget):
 
     def resize(self, current_width: int) -> None:
         tape_width = self.__tape_elements_layout.sizeHint().width()
+        tape_width = 25 if tape_width == 0 else tape_width  # TODO: исправить натуральный костыль
         if current_width > self.__last_width:
             while current_width > tape_width + 4 * TapeElement.WIDTH - 10:
                 self.__add_left_tape_element()
