@@ -1,7 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QPushButton, QVBoxLayout, QListWidget, QListWidgetItem, \
-    QAction, QAbstractItemView
+    QAbstractItemView
 
 from widgets.tape import Tape
 
@@ -137,3 +137,7 @@ class TapeList(QWidget):
         pass
         # if (name := self.__list.selectedItem().text()) != self.__active_tape:
         #     self.__set_active(name)
+
+    def get_data(self) -> dict:
+        self.save_active_tape()
+        return self.__tapes
