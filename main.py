@@ -1,9 +1,9 @@
 import sys
 
 from PyQt5.QtCore import Qt, QEvent
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QImage, QPixmap
 from PyQt5.QtWidgets import (QWidget, QApplication, QDoubleSpinBox, QMainWindow, QAction,
-                             QToolBar, QGridLayout, QSizePolicy, QSplitter, QLabel, QLineEdit)
+                             QToolBar, QGridLayout, QSizePolicy, QSplitter, QLabel, QLineEdit, QFrame)
 
 from post_machine_logic import Program
 from utils import Saver, Loader
@@ -52,6 +52,8 @@ class App(QMainWindow):
         # TODO: добавить ещё нужные меню
         # инициализация тулбара
         self.__toolbar = QToolBar()
+        self.__status_bar_label = QLabel()
+        self.__status_bar_icon = QLabel()
         # инициализация основых элементов экрана
         # TODO: исправить баг со сплиттером - при чрезмерном сдвиге в сторону, виджет в той же стороне исчезает
         # ^ хотя его можно вернуть - может быть это просто фича такая?
@@ -61,6 +63,9 @@ class App(QMainWindow):
         self.__table = Table()
         self.__tape = Tape(self.__width)
         self.__tape_list = TapeList(self.__tape)
+        # инициализация иконок
+        self.__OK = QPixmap('icons/ok.png')
+        self.__ERROR = QPixmap('icons/error.png')
 
         # инициализация раннера, сейвера и загрузчика
         self.__saver = Saver(self, self.__comment, self.__table, self.__tape, self.__tape_list)
@@ -69,10 +74,16 @@ class App(QMainWindow):
 
         # установка получения событий
         self.installEventFilter(self)
+        # установка пиксельмэпов
+        self.__set_pixmaps()
         # инициализация пользовательского интерфейса
         self.init_ui()
         # установка сигналов
         self.__set_signals()
+
+    def __set_pixmaps(self) -> None:
+        self.__OK = self.__OK.scaled(20, 20)
+        self.__ERROR = self.__ERROR.scaled(20, 20)
 
     def __set_signals(self) -> None:
         self.__signals.on_stop.connect(self.__enable_interface)
@@ -99,7 +110,7 @@ class App(QMainWindow):
         self.__pause_action.triggered.connect(self.pause_program)
 
     def __set_clear_tape_action(self) -> None:
-        self.__clear_tape_action.setIcon(QIcon(''))
+        self.__clear_tape_action.setIcon(QIcon('icons/clear-tape.png'))
         self.__clear_tape_action.setText('Clear')
         self.__clear_tape_action.setShortcut('F9')
         self.__clear_tape_action.setStatusTip('Clear tape')
@@ -141,14 +152,14 @@ class App(QMainWindow):
         self.__save_all_action.triggered.connect(self.__saver.save_all)
 
     def __set_load_program_action(self) -> None:
-        self.__load_program_action.setIcon(QIcon(''))
+        self.__load_program_action.setIcon(QIcon('icons/open-program.png'))
         self.__load_program_action.setText('Load Program')
         self.__load_program_action.setShortcut('Ctrl+Shift+P')
         self.__load_program_action.setStatusTip('Load Program')
         self.__load_program_action.triggered.connect(self.__loader.load_program)
 
     def __set_load_tests_action(self) -> None:
-        self.__load_tests_action.setIcon(QIcon(''))
+        self.__load_tests_action.setIcon(QIcon('icons/open-tests.png'))
         self.__load_tests_action.setText('Load Tests')
         self.__load_tests_action.setShortcut('Ctrl+Shift+T')
         self.__load_tests_action.setStatusTip('Load Tests')
@@ -228,8 +239,9 @@ class App(QMainWindow):
         self.addToolBar(Qt.TopToolBarArea, self.__toolbar)
 
     def __set_status_bar(self) -> None:
-        # для изменения, например, шрифта или положения статусбара
-        pass
+        self.statusBar().setStyleSheet('QStatusBar::item {border: None;}')
+        self.statusBar().addWidget(self.__status_bar_icon)
+        self.statusBar().addWidget(self.__status_bar_label)
 
     def __set_h_splitter(self) -> None:
         self.__h_splitter.addWidget(self.__table)
@@ -306,8 +318,9 @@ class App(QMainWindow):
         self.show()
         self.log('Application loaded')
 
-    def log(self, message: str) -> None:
-        self.statusBar().showMessage(message)
+    def log(self, message: str, success: bool = True) -> None:
+        self.__status_bar_icon.setPixmap(self.__OK if success else self.__ERROR)
+        self.__status_bar_label.setText(message)
 
     def eventFilter(self, obj, event):
         # TODO: хочу, чтоб окно становилось меньше, когда от фулскрина переходишь к обычному размеру окна
