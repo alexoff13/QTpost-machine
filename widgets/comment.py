@@ -8,3 +8,6 @@ class Comment(QPlainTextEdit):
 
     def get_data(self) -> str:
         return self.toPlainText()
+
+    def set_from_file(self, file: str) -> None:
+        self.setPlainText(file)

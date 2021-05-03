@@ -40,7 +40,8 @@ class App(QMainWindow):
         self.__save_program_action = QAction()
         self.__save_tests_action = QAction()
         self.__save_all_action = QAction()
-        self.__load_action = QAction()
+        self.__load_program_action = QAction()
+        self.__load_tests_action = QAction()
         self.__reset_action = QAction()
         self.__exit_action = QAction()
         self.__timer = QDoubleSpinBox()
@@ -63,8 +64,8 @@ class App(QMainWindow):
 
         # инициализация раннера, сейвера и загрузчика
         self.__saver = Saver(self, self.__comment, self.__table, self.__tape, self.__tape_list)
-        self.__program_run = Program(self.__table, self.__tape, self.__timer, self.__signals.on_stop)
-        # self.__program_debug = Program(self.__table, self.__tape, self.__timer, self.__signals.on_stop)
+        self.__loader = Loader(self, self.__comment, self.__table, self.__tape, self.__tape_list, self.__saver)
+        self.__program = Program(self.__table, self.__tape, self.__timer, self.__signals.on_stop)
 
         # установка получения событий
         self.installEventFilter(self)
@@ -100,7 +101,7 @@ class App(QMainWindow):
     def __set_clear_tape_action(self) -> None:
         self.__clear_tape_action.setIcon(QIcon(''))
         self.__clear_tape_action.setText('Clear')
-        self.__clear_tape_action.setShortcut('F9')  # TODO второй F4
+        self.__clear_tape_action.setShortcut('F9')
         self.__clear_tape_action.setStatusTip('Clear tape')
         self.__clear_tape_action.triggered.connect(self.clear_tape)
 
@@ -120,43 +121,50 @@ class App(QMainWindow):
 
     def __set_save_program_action(self) -> None:
         self.__save_program_action.setIcon(QIcon('icons/save-program.png'))
-        self.__save_program_action.setText('Save program')
-        self.__save_program_action.setShortcut('Ctrl+S')
-        self.__save_program_action.setStatusTip('Save program')
+        self.__save_program_action.setText('Save Program')
+        self.__save_program_action.setShortcut('Ctrl+P')
+        self.__save_program_action.setStatusTip('Save Program')
         self.__save_program_action.triggered.connect(self.__saver.save_program)
 
     def __set_save_tests_action(self) -> None:
         self.__save_tests_action.setIcon(QIcon('icons/save-tests.png'))
-        self.__save_tests_action.setText('Save tests')
+        self.__save_tests_action.setText('Save Tests')
         self.__save_tests_action.setShortcut('Ctrl+T')
-        self.__save_tests_action.setStatusTip('Save tests')
+        self.__save_tests_action.setStatusTip('Save Tests')
         self.__save_tests_action.triggered.connect(self.__saver.save_tests)
 
     def __set_save_all_action(self) -> None:
         self.__save_all_action.setIcon(QIcon('icons/save-all.png'))
-        self.__save_all_action.setText('Save all')
+        self.__save_all_action.setText('Save All')
         self.__save_all_action.setShortcut('Ctrl+A')
-        self.__save_all_action.setStatusTip('Save all')
-        # self.__save_all_action.triggered.connect(self.__saver.save_all)
+        self.__save_all_action.setStatusTip('Save All')
+        self.__save_all_action.triggered.connect(self.__saver.save_all)
 
-    def __set_load_action(self) -> None:
-        self.__load_action.setIcon(QIcon(''))
-        self.__load_action.setText('Load')
-        self.__load_action.setShortcut('Ctrl+E')
-        self.__load_action.setStatusTip('Load program')
-        self.__load_action.triggered.connect(self.load_program)
+    def __set_load_program_action(self) -> None:
+        self.__load_program_action.setIcon(QIcon(''))
+        self.__load_program_action.setText('Load Program')
+        self.__load_program_action.setShortcut('Ctrl+Shift+P')
+        self.__load_program_action.setStatusTip('Load Program')
+        self.__load_program_action.triggered.connect(self.__loader.load_program)
+
+    def __set_load_tests_action(self) -> None:
+        self.__load_tests_action.setIcon(QIcon(''))
+        self.__load_tests_action.setText('Load Tests')
+        self.__load_tests_action.setShortcut('Ctrl+Shift+T')
+        self.__load_tests_action.setStatusTip('Load Tests')
+        self.__load_tests_action.triggered.connect(self.__loader.load_tests)
 
     def __set_actions(self) -> None:
         self.__set_run_action()
         self.__set_debug_action()
         self.__set_pause_action()
         self.__set_stop_action()
-        # TODO: добавить остальные действия
         self.__set_save_program_action()
         self.__set_clear_tape_action()
         self.__set_save_tests_action()
         self.__set_save_all_action()
-        self.__set_load_action()
+        self.__set_load_program_action()
+        self.__set_load_tests_action()
         self.__set_exit_action()
 
     def __set_timer(self) -> None:
@@ -176,7 +184,8 @@ class App(QMainWindow):
         self.__file_menu.addAction(self.__save_tests_action)
         self.__file_menu.addAction(self.__save_all_action)
         self.__file_menu.addSeparator()
-        self.__file_menu.addAction(self.__load_action)
+        self.__file_menu.addAction(self.__load_program_action)
+        self.__file_menu.addAction(self.__load_tests_action)
         self.__file_menu.addSeparator()
         self.__file_menu.addAction(self.__exit_action)
 
@@ -201,11 +210,15 @@ class App(QMainWindow):
         self.__toolbar.addAction(self.__debug_action)
         self.__toolbar.addAction(self.__pause_action)
         self.__toolbar.addAction(self.__stop_action)
-        self.__toolbar.addAction(self.__clear_tape_action)
         self.__toolbar.addSeparator()
         self.__toolbar.addAction(self.__save_program_action)
         self.__toolbar.addAction(self.__save_tests_action)
         self.__toolbar.addAction(self.__save_all_action)
+        self.__toolbar.addSeparator()
+        self.__toolbar.addAction(self.__load_program_action)
+        self.__toolbar.addAction(self.__load_tests_action)
+        self.__toolbar.addSeparator()
+        self.__toolbar.addAction(self.__clear_tape_action)
         spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.__toolbar.addWidget(spacer)
@@ -257,33 +270,25 @@ class App(QMainWindow):
 
     def run_program(self):
         # self.__disable_interface()
-        self.__program_run.set_mode(False)
-        self.__program_run.start()
+        self.__program.set_mode(False)
+        self.__program.start()
 
     def debug_program(self):
         # self.__disable_interface()
-        self.__program_run.set_mode(True)
-        self.__program_run.start()
+        self.__program.set_mode(True)
+        self.__program.start()
 
     def pause_program(self):
-        self.__program_run.pause()
+        self.__program.pause()
 
     def stop_program(self):
         # self.__enable_interface()
-        self.__program_run.stop()
-        self.__program_run.quit()
-        self.__program_run.wait()
+        self.__program.stop()
+        self.__program.quit()
+        self.__program.wait()
 
     def clear_tape(self):
         self.__tape.reset()
-
-    def save_program(self):
-        self.__saver.save_program()
-
-    def load_program(self):
-        program = Loader.load_program(self)
-        self.__tape.set_from_file(program['tape'])
-        self.__table.set_from_file(program['table'])
 
     def init_ui(self):
         self.setGeometry(self.__x, self.__y, self.__width, self.__height)
