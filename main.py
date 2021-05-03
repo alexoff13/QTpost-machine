@@ -34,9 +34,12 @@ class App(QMainWindow):
         self.__main_layout = QGridLayout(self.__main_widget)
         # инициализация действий и виджетов для тулбаров
         self.__run_action = QAction()
-        self.__stop_action = QAction()
         self.__debug_action = QAction()
-        self.__save_action = QAction()
+        self.__pause_action = QAction()
+        self.__stop_action = QAction()
+        self.__save_program_action = QAction()
+        self.__save_tests_action = QAction()
+        self.__save_all_action = QAction()
         self.__load_action = QAction()
         self.__reset_action = QAction()
         self.__exit_action = QAction()
@@ -44,6 +47,7 @@ class App(QMainWindow):
         # инициализация меню
         self.__menu_bar = self.menuBar()
         self.__file_menu = self.__menu_bar.addMenu(str())
+        self.__execution_menu = self.__menu_bar.addMenu(str())
         # TODO: добавить ещё нужные меню
         # инициализация тулбара
         self.__toolbar = QToolBar()
@@ -57,16 +61,16 @@ class App(QMainWindow):
         self.__tape = Tape(self.__width)
         self.__tape_list = TapeList(self.__tape)
 
+        # инициализация раннера, сейвера и загрузчика
+        self.__saver = Saver(self, self.__comment, self.__table, self.__tape, self.__tape_list)
+        self.__program = Program(self.__table, self.__tape, self.__timer, self.__signals.on_stop)
+
         # установка получения событий
         self.installEventFilter(self)
         # инициализация пользовательского интерфейса
         self.init_ui()
         # установка сигналов
         self.__set_signals()
-
-        # инициализация раннера, сейвера и загрузчика
-        self.__saver = Saver(self, self.__comment, self.__table, self.__tape, self.__tape_list)
-        self.__program = Program(self.__table, self.__tape, self.__timer, self.__signals.on_stop)
 
     def __set_signals(self) -> None:
         self.__signals.on_stop.connect(self.__enable_interface)
@@ -77,6 +81,20 @@ class App(QMainWindow):
         self.__run_action.setShortcut('F4')
         self.__run_action.setStatusTip('Run program')
         self.__run_action.triggered.connect(self.run_program)
+
+    def __set_debug_action(self) -> None:
+        self.__debug_action.setIcon(QIcon('icons/debug.png'))
+        self.__debug_action.setText('Debug')
+        self.__debug_action.setShortcut('F8')
+        self.__debug_action.setStatusTip('Debug program by step')
+        # TODO self.__debug_action.triggered.connect()
+
+    def __set_pause_action(self) -> None:
+        self.__pause_action.setIcon(QIcon('icons/pause.png'))
+        self.__pause_action.setText('Pause')
+        self.__pause_action.setShortcut('F4')  # TODO второй F4
+        self.__pause_action.setStatusTip('Pause program')
+        # TODO self.__pause_action.triggered.connect()
 
     def __set_stop_action(self) -> None:
         self.__stop_action.setIcon(QIcon('icons/stop.png'))
@@ -92,12 +110,26 @@ class App(QMainWindow):
         self.__exit_action.setStatusTip('Exit application')
         self.__exit_action.triggered.connect(self.close)
 
-    def __set_save_action(self) -> None:
-        self.__save_action.setIcon(QIcon(''))
-        self.__save_action.setText('Save')
-        self.__save_action.setShortcut('Ctrl+S')
-        self.__save_action.setStatusTip('Save program')
-        self.__save_action.triggered.connect(self.save_program)
+    def __set_save_program_action(self) -> None:
+        self.__save_program_action.setIcon(QIcon('icons/save-program.png'))
+        self.__save_program_action.setText('Save program')
+        self.__save_program_action.setShortcut('Ctrl+S')
+        self.__save_program_action.setStatusTip('Save program')
+        self.__save_program_action.triggered.connect(self.__saver.save_program)
+
+    def __set_save_tests_action(self) -> None:
+        self.__save_tests_action.setIcon(QIcon('icons/save-tests.png'))
+        self.__save_tests_action.setText('Save tests')
+        self.__save_tests_action.setShortcut('Ctrl+T')
+        self.__save_tests_action.setStatusTip('Save tests')
+        self.__save_tests_action.triggered.connect(self.__saver.save_tests)
+
+    def __set_save_all_action(self) -> None:
+        self.__save_all_action.setIcon(QIcon('icons/save-all.png'))
+        self.__save_all_action.setText('Save all')
+        self.__save_all_action.setShortcut('Ctrl+A')
+        self.__save_all_action.setStatusTip('Save all')
+        # self.__save_all_action.triggered.connect(self.__saver.save_all)
 
     def __set_load_action(self) -> None:
         self.__load_action.setIcon(QIcon(''))
@@ -108,9 +140,13 @@ class App(QMainWindow):
 
     def __set_actions(self) -> None:
         self.__set_run_action()
+        self.__set_debug_action()
+        self.__set_pause_action()
         self.__set_stop_action()
         # TODO: добавить остальные действия
-        self.__set_save_action()
+        self.__set_save_program_action()
+        self.__set_save_tests_action()
+        self.__set_save_all_action()
         self.__set_load_action()
         self.__set_exit_action()
 
@@ -127,15 +163,24 @@ class App(QMainWindow):
 
     def __set_file_menu(self) -> None:
         self.__file_menu.setTitle('&File')
-        self.__file_menu.addAction(self.__run_action)
-        self.__file_menu.addAction(self.__stop_action)
+        self.__file_menu.addAction(self.__save_program_action)
+        self.__file_menu.addAction(self.__save_tests_action)
+        self.__file_menu.addAction(self.__save_all_action)
         self.__file_menu.addSeparator()
-        self.__file_menu.addAction(self.__save_action)
         self.__file_menu.addAction(self.__load_action)
+        self.__file_menu.addSeparator()
         self.__file_menu.addAction(self.__exit_action)
+
+    def __set_execution_menu(self) -> None:
+        self.__execution_menu.setTitle('&Execution')
+        self.__execution_menu.addAction(self.__run_action)
+        self.__execution_menu.addAction(self.__debug_action)
+        self.__execution_menu.addAction(self.__pause_action)
+        self.__execution_menu.addAction(self.__stop_action)
 
     def __set_menu_bar(self) -> None:
         self.__set_file_menu()
+        self.__set_execution_menu()
         # TODO: добавить остальные вкладки
 
     def __set_toolbar(self) -> None:
@@ -144,9 +189,13 @@ class App(QMainWindow):
         # ^ на всякий случай можно поставить спейсер, наверно
         self.__toolbar.setMovable(False)
         self.__toolbar.addAction(self.__run_action)
+        self.__toolbar.addAction(self.__debug_action)
+        self.__toolbar.addAction(self.__pause_action)
         self.__toolbar.addAction(self.__stop_action)
-        # TODO: добавить остальные кнопки
         self.__toolbar.addSeparator()
+        self.__toolbar.addAction(self.__save_program_action)
+        self.__toolbar.addAction(self.__save_tests_action)
+        self.__toolbar.addAction(self.__save_all_action)
         spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.__toolbar.addWidget(spacer)
@@ -180,6 +229,7 @@ class App(QMainWindow):
 
     def __enable_interface(self) -> None:
         self.__run_action.setEnabled(True)
+        self.__pause_action.setEnabled(False)
         self.__stop_action.setEnabled(False)
         self.__table.setEnabled(True)
         self.__tape_list.setEnabled(True)
@@ -187,6 +237,7 @@ class App(QMainWindow):
 
     def __disable_interface(self) -> None:
         self.__run_action.setEnabled(False)
+        self.__pause_action.setEnabled(True)
         self.__stop_action.setEnabled(True)
         self.__table.setEnabled(False)
         self.__tape_list.setEnabled(False)
