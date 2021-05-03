@@ -5,10 +5,9 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QWidget, QApplication, QDoubleSpinBox, QMainWindow, QAction,
                              QToolBar, QGridLayout, QSizePolicy, QSplitter, QLabel, QLineEdit)
 
-
 from post_machine_logic import Program
-from utils.signals import ProgramSignals
 from utils import Saver, Loader
+from utils.signals import ProgramSignals
 from widgets.comment import Comment
 from widgets.table import Table
 from widgets.tape import Tape
@@ -37,6 +36,7 @@ class App(QMainWindow):
         self.__debug_action = QAction()
         self.__pause_action = QAction()
         self.__stop_action = QAction()
+        self.__clear_tape_action = QAction()
         self.__save_program_action = QAction()
         self.__save_tests_action = QAction()
         self.__save_all_action = QAction()
@@ -63,7 +63,8 @@ class App(QMainWindow):
 
         # инициализация раннера, сейвера и загрузчика
         self.__saver = Saver(self, self.__comment, self.__table, self.__tape, self.__tape_list)
-        self.__program = Program(self.__table, self.__tape, self.__timer, self.__signals.on_stop)
+        self.__program_run = Program(self.__table, self.__tape, self.__timer, self.__signals.on_stop)
+        # self.__program_debug = Program(self.__table, self.__tape, self.__timer, self.__signals.on_stop)
 
         # установка получения событий
         self.installEventFilter(self)
@@ -87,14 +88,21 @@ class App(QMainWindow):
         self.__debug_action.setText('Debug')
         self.__debug_action.setShortcut('F8')
         self.__debug_action.setStatusTip('Debug program by step')
-        # TODO self.__debug_action.triggered.connect()
+        self.__debug_action.triggered.connect(self.debug_program)
 
     def __set_pause_action(self) -> None:
         self.__pause_action.setIcon(QIcon('icons/pause.png'))
         self.__pause_action.setText('Pause')
         self.__pause_action.setShortcut('F4')  # TODO второй F4
         self.__pause_action.setStatusTip('Pause program')
-        # TODO self.__pause_action.triggered.connect()
+        self.__pause_action.triggered.connect(self.pause_program)
+
+    def __set_clear_tape_action(self) -> None:
+        self.__clear_tape_action.setIcon(QIcon(''))
+        self.__clear_tape_action.setText('Clear')
+        self.__clear_tape_action.setShortcut('F9')  # TODO второй F4
+        self.__clear_tape_action.setStatusTip('Clear tape')
+        self.__clear_tape_action.triggered.connect(self.clear_tape)
 
     def __set_stop_action(self) -> None:
         self.__stop_action.setIcon(QIcon('icons/stop.png'))
@@ -145,6 +153,7 @@ class App(QMainWindow):
         self.__set_stop_action()
         # TODO: добавить остальные действия
         self.__set_save_program_action()
+        self.__set_clear_tape_action()
         self.__set_save_tests_action()
         self.__set_save_all_action()
         self.__set_load_action()
@@ -192,6 +201,7 @@ class App(QMainWindow):
         self.__toolbar.addAction(self.__debug_action)
         self.__toolbar.addAction(self.__pause_action)
         self.__toolbar.addAction(self.__stop_action)
+        self.__toolbar.addAction(self.__clear_tape_action)
         self.__toolbar.addSeparator()
         self.__toolbar.addAction(self.__save_program_action)
         self.__toolbar.addAction(self.__save_tests_action)
@@ -228,28 +238,44 @@ class App(QMainWindow):
         self.__main_layout.addWidget(self.__main_widget, 0, 0)
 
     def __enable_interface(self) -> None:
-        self.__run_action.setEnabled(True)
-        self.__pause_action.setEnabled(False)
-        self.__stop_action.setEnabled(False)
-        self.__table.setEnabled(True)
-        self.__tape_list.setEnabled(True)
-        self.__tape.setEnabled(True)
+        ...
+        # self.__run_action.setEnabled(True)
+        # self.__pause_action.setEnabled(False)
+        # self.__stop_action.setEnabled(False)
+        # self.__table.setEnabled(True)
+        # self.__tape_list.setEnabled(True)
+        # self.__tape.setEnabled(True)
 
     def __disable_interface(self) -> None:
-        self.__run_action.setEnabled(False)
-        self.__pause_action.setEnabled(True)
-        self.__stop_action.setEnabled(True)
-        self.__table.setEnabled(False)
-        self.__tape_list.setEnabled(False)
-        self.__tape.setEnabled(False)
+        ...
+        # self.__run_action.setEnabled(False)
+        # self.__pause_action.setEnabled(True)
+        # self.__stop_action.setEnabled(True)
+        # self.__table.setEnabled(False)
+        # self.__tape_list.setEnabled(False)
+        # self.__tape.setEnabled(False)
 
     def run_program(self):
-        self.__disable_interface()
-        self.__program.start()
+        # self.__disable_interface()
+        self.__program_run.set_mode(False)
+        self.__program_run.start()
+
+    def debug_program(self):
+        # self.__disable_interface()
+        self.__program_run.set_mode(True)
+        self.__program_run.start()
+
+    def pause_program(self):
+        self.__program_run.pause()
 
     def stop_program(self):
-        self.__enable_interface()
-        self.__program.terminate()
+        # self.__enable_interface()
+        self.__program_run.stop()
+        self.__program_run.quit()
+        self.__program_run.wait()
+
+    def clear_tape(self):
+        self.__tape.reset()
 
     def save_program(self):
         self.__saver.save_program()
