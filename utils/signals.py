@@ -12,3 +12,8 @@ class RunnerSignals(QObject):
 
 class ProgramSignals(QObject):
     on_stop = QtCore.pyqtSignal()
+
+
+class TapeSignals(QObject):
+    to_left = QtCore.pyqtSignal()
+    to_right = QtCore.pyqtSignal()

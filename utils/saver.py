@@ -25,7 +25,7 @@ class Saver:
         self.__tests_path = None
 
     def __get_file_path(self, file_name: str) -> str:
-        path = QFileDialog.getOpenFileName(self.__parent, self.CHOOSE_FILE, file_name)[0]
+        path = QFileDialog.getSaveFileName(self.__parent, self.CHOOSE_FILE, file_name)[0]
         return None if path == '' else path
 
     def __save_program(self) -> None:
@@ -82,8 +82,23 @@ class Saver:
         self.save_program()
         self.save_tests()
 
+    def has_unsaved_program_data(self) -> bool:
+        return self.__comment.has_unsaved_data() or self.__table.has_unsaved_data() or self.__tape.has_unsaved_data()
+
+    def has_unsaved_tests_data(self) -> bool:
+        return self.__tape_list.has_unsaved_data()
+
+    def has_unsaved_data(self) -> bool:
+        return self.is_program_unsaved() or self.are_tests_unsaved()
+
     def is_program_unsaved(self) -> bool:
-        return self.__program_data != self.get_program_data()
+        return self.has_unsaved_program_data() and self.__program_data != self.get_program_data()
 
     def are_tests_unsaved(self) -> bool:
-        return self.__tests_data != self.get_tests_data()
+        return self.has_unsaved_tests_data() and self.__tests_data != self.get_tests_data()
+
+    def update_program_data(self) -> None:
+        self.__program_data = self.get_program_data()
+
+    def update_tests_data(self) -> None:
+        self.__tests_data = self.get_tests_data()

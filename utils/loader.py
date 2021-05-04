@@ -10,6 +10,10 @@ from widgets.tape import Tape
 from widgets.tape_list import TapeList
 
 
+class LoadCancel(Exception):
+    pass
+
+
 class Loader:
     OPEN_FILE = 'Open file'
     DEFAULT_DIRECTORY = './~'
@@ -27,24 +31,42 @@ class Loader:
         return QFileDialog.getOpenFileName(self.__parent, self.OPEN_FILE, self.DEFAULT_DIRECTORY)[0]
 
     def __unsaved_program_warning(self) -> None:
-        if self.__saver.is_program_unsaved() and self.get_answer():
-            self.__saver.save_program()
+        if self.__saver.is_program_unsaved():
+            message = QMessageBox()
+            message.setWindowTitle('Unsaved changes')
+            message.setText('Want to save your changes?')
+            message.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+            answer = message.exec()
+            if answer == QMessageBox.Yes:
+                self.__saver.save_program()
+            elif answer == QMessageBox.Cancel:
+                raise LoadCancel
 
     def __unsaved_tests_warning(self) -> None:
-        if self.__saver.are_tests_unsaved() and self.get_answer():
-            self.__saver.save_tests()
+        if self.__saver.are_tests_unsaved():
+            message = QMessageBox()
+            message.setWindowTitle('Unsaved changes')
+            message.setText('Want to save your changes?')
+            message.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+            answer = message.exec()
+            if answer == QMessageBox.Yes:
+                self.__saver.save_tests()
+            elif answer == QMessageBox.Cancel:
+                raise LoadCancel
 
     def load_program(self) -> None:
         try:
+            self.__unsaved_program_warning()
             with open(self.__get_file_path(), 'r') as fin:
                 program = json.load(fin)
             self.__comment.set_from_file(program['comment'])
             self.__table.set_from_file(program['table'])
             self.__tape.set_from_file(program['tape'])
-        except (JSONDecodeError, KeyError):
+            self.__saver.update_program_data()
+        except (KeyError, JSONDecodeError):
             # TODO: код для посланания сообщения, что файл неверного формата
             pass
-        except FileNotFoundError:
+        except (FileNotFoundError, LoadCancel):  # когда происходит какая-либо отмена
             pass
 
     def load_tests(self) -> None:
@@ -53,10 +75,11 @@ class Loader:
             with open(self.__get_file_path(), 'r') as fin:
                 tests = json.load(fin)
             self.__tape_list.set_from_file(tests)
-        except (JSONDecodeError, KeyError):
+            self.__saver.update_tests_data()
+        except (KeyError, JSONDecodeError):
             # TODO: код для посланания сообщения, что файл неверного формата
             pass
-        except FileNotFoundError:
+        except (FileNotFoundError, LoadCancel):  # когда происходит какая-либо отмена
             pass
 
     @staticmethod
@@ -64,6 +87,6 @@ class Loader:
         message = QMessageBox()
         message.setWindowTitle('Unsaved changes')
         message.setText('Want to save your changes?')
-        message.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        message.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
         answer = message.exec()
         return answer == QMessageBox.Yes

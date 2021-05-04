@@ -1,9 +1,10 @@
 import sys
 
 from PyQt5.QtCore import Qt, QEvent
-from PyQt5.QtGui import QIcon, QImage, QPixmap
+from PyQt5.QtGui import QIcon, QImage, QPixmap, QCloseEvent
 from PyQt5.QtWidgets import (QWidget, QApplication, QDoubleSpinBox, QMainWindow, QAction,
-                             QToolBar, QGridLayout, QSizePolicy, QSplitter, QLabel, QLineEdit, QFrame)
+                             QToolBar, QGridLayout, QSizePolicy, QSplitter, QLabel, QLineEdit, QFrame, QMessageBox,
+                             QDialog)
 
 from post_machine_logic import Program
 from utils import Saver, Loader
@@ -66,6 +67,8 @@ class App(QMainWindow):
         # инициализация иконок
         self.__OK = QPixmap('icons/ok.png')
         self.__ERROR = QPixmap('icons/error.png')
+        self.__RUN = QIcon('icons/run.png')
+        self.__PAUSE = QIcon('icons/pause.png')
 
         # инициализация раннера, сейвера и загрузчика
         self.__saver = Saver(self, self.__comment, self.__table, self.__tape, self.__tape_list)
@@ -89,7 +92,7 @@ class App(QMainWindow):
         self.__signals.on_stop.connect(self.__enable_interface)
 
     def __set_run_action(self) -> None:
-        self.__run_action.setIcon(QIcon('icons/play.png'))
+        self.__run_action.setIcon(QIcon('icons/run.png'))
         self.__run_action.setText('Run')
         self.__run_action.setShortcut('F4')
         self.__run_action.setStatusTip('Run program')
@@ -128,7 +131,7 @@ class App(QMainWindow):
         self.__exit_action.setText('Exit')
         self.__exit_action.setShortcut('Ctrl+A+D')
         self.__exit_action.setStatusTip('Exit application')
-        self.__exit_action.triggered.connect(self.close)
+        self.__exit_action.triggered.connect(self.closeEvent)
 
     def __set_save_program_action(self) -> None:
         self.__save_program_action.setIcon(QIcon('icons/save-program.png'))
@@ -247,7 +250,7 @@ class App(QMainWindow):
         self.__h_splitter.addWidget(self.__table)
         self.__h_splitter.addWidget(self.__tape_list)
         self.__h_splitter.setStretchFactor(1, 0)
-        self.__h_splitter.setSizes([750, 150])  # TODO: убрать хардкод
+        self.__h_splitter.setSizes([800, 100])  # TODO: убрать хардкод
 
     def __set_v_splitter(self) -> None:
         self.__v_splitter.addWidget(self.__comment)
@@ -331,6 +334,25 @@ class App(QMainWindow):
         if event.type() == QEvent.Resize:
             self.__tape.resize_width(self.size().width())
         return super().eventFilter(obj, event)
+
+    def closeEvent(self, a0: QCloseEvent) -> None:
+        if self.__saver.has_unsaved_data():
+            message = QMessageBox()
+            message.setWindowTitle('Unsaved changes')
+            message.setText('Want to save your changes?')
+            message.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+            answer = message.exec()
+            if answer == QMessageBox.Yes:
+                if self.__saver.has_unsaved_program_data():
+                    self.__saver.save_program()
+                if self.__saver.has_unsaved_tests_data():
+                    self.__saver.save_tests()
+        else:
+            answer = QMessageBox.Yes
+        if answer == QMessageBox.Cancel:
+            a0.ignore()
+        else:
+            a0.accept()
 
 
 if __name__ == '__main__':

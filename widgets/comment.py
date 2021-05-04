@@ -11,3 +11,6 @@ class Comment(QPlainTextEdit):
 
     def set_from_file(self, file: str) -> None:
         self.setPlainText(file)
+
+    def has_unsaved_data(self) -> bool:
+        return self.get_data() != ''

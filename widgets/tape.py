@@ -1,7 +1,11 @@
+from time import sleep
+
 from PyQt5 import QtCore
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QThread
 from PyQt5.QtGui import QPalette, QIcon
 from PyQt5.QtWidgets import QPushButton, QWidget, QHBoxLayout, QLabel, QVBoxLayout, QGridLayout
+
+from utils.signals import TapeSignals
 
 
 class Index(QLabel):
@@ -99,10 +103,31 @@ class Direction(QPushButton):
         self.setFixedSize(self.WIDTH, self.HEIGHT)
 
 
-# TODO: добавить методы disable и able (чтобы отключать возможность редактирования во время выполнения программы)
+class Scrolling(QThread):
+    def __init__(self, left: Direction, right: Direction, left_signal: QtCore.pyqtBoundSignal,
+                 right_signal: QtCore.pyqtBoundSignal, is_left: bool = None) -> None:
+        super().__init__()
+        self.__left = left
+        self.__right = right
+        self.__left_signal = left_signal
+        self.__right_signal = right_signal
+        self.__mode = is_left  # left: True | right: False
+
+    def set_mode(self, is_left: bool):
+        self.__mode = is_left
+
+    def run(self) -> None:
+        k = 0
+        button = self.__left if self.__mode else self.__right
+        signal = self.__left_signal if self.__mode else self.__right_signal
+        while button.isDown():
+            signal.emit()
+            k += 1
+            sleep(0.05 if k > 2 else 0.2)
 
 
 class Tape(QWidget):
+    __signals = TapeSignals()
 
     def __init__(self, current_width: int, parent: any = None) -> None:
         super().__init__(parent=parent)
@@ -111,9 +136,9 @@ class Tape(QWidget):
         self.__tape_elements = dict()
 
         self.__left_direction = Direction(True)
-        self.__left_direction.clicked.connect(self.go_left)
+        self.__left_direction.pressed.connect(self.__pressed_go_left)
         self.__right_direction = Direction(False)
-        self.__right_direction.clicked.connect(self.go_right)
+        self.__right_direction.pressed.connect(self.__pressed_go_right)
         self.__directions_layout = QHBoxLayout()
         self.__directions_layout.addWidget(self.__left_direction, 0, alignment=Qt.AlignLeft)
         self.__directions_layout.addWidget(self.__right_direction, 1, alignment=Qt.AlignRight)
@@ -133,6 +158,11 @@ class Tape(QWidget):
         self.setPalette(tape_background)
         self.setFixedHeight(85)
         self.setLayout(self.__main_layout)
+
+        self.__signals.to_left.connect(self.go_left)
+        self.__signals.to_right.connect(self.go_right)
+        self.__scrolling = Scrolling(self.__left_direction, self.__right_direction, self.__signals.to_left,
+                                     self.__signals.to_right)
 
         self.draw(current_width)
 
@@ -171,6 +201,14 @@ class Tape(QWidget):
     def __return_signal(callback: QtCore.pyqtBoundSignal) -> None:
         if type(callback) is QtCore.pyqtBoundSignal:
             callback.emit()
+
+    def __pressed_go_left(self) -> None:
+        self.__scrolling.set_mode(True)
+        self.__scrolling.start()
+
+    def __pressed_go_right(self) -> None:
+        self.__scrolling.set_mode(False)
+        self.__scrolling.start()
 
     # сдвинуть ленту влево
     def go_left(self, callback: QtCore.pyqtBoundSignal = None) -> None:
@@ -256,6 +294,9 @@ class Tape(QWidget):
             if self.__tape_elements[index] is None or self.__tape_elements[index].is_marked():
                 tape_data['marked_cells'].append(index)
         return tape_data
+
+    def has_unsaved_data(self) -> bool:
+        return self.get_carriage_index() != 0 or len(self.get_data()['marked_cells']) > 0
 
     def resize_width(self, current_width: int) -> None:
         tape_width = self.__tape_elements_layout.sizeHint().width()

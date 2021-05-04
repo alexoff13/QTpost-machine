@@ -140,13 +140,18 @@ class Table(QWidget):
         table_data = dict()
         count_rows = self.__table.rowCount()
         for i in range(count_rows):
-            command, comment, jump_state = '', '', ''
             try:
                 command = self.__table.item(i, 0).text()
+            except AttributeError:
+                command = ''
+            try:
                 jump_state = self.__table.item(i, 1).text()
+            except AttributeError:
+                jump_state = ''
+            try:
                 comment = self.__table.item(i, 2).text()
             except AttributeError:
-                pass
+                comment = ''
             table_data[i] = [command, jump_state, comment]
         return table_data
 
@@ -162,3 +167,12 @@ class Table(QWidget):
                     self.add_row(index, i, file[str(index)][i])
                 except:  # TODO: сделать по канонам ексепшенов
                     self.add_row(index, i, file[index][i])
+
+    def has_unsaved_data(self) -> bool:
+        data = self.get_data()
+        for row in self.get_data():
+            for column in data[row]:
+                if column:
+                    return True
+        else:
+            return False
