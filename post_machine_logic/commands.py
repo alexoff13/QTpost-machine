@@ -74,6 +74,7 @@ class Runner():
         return -1
 
     def debug(self):
+        self._is_running = True
         self.commands = self._table.get_data()
         if self._is_running and self._is_event_completed:
             self._is_event_completed = False
@@ -108,13 +109,13 @@ class Runner():
 
 
 class Program(QThread):
-    def __init__(self, table: Table, tape: Tape, timer: QDoubleSpinBox, is_debug: bool = True,
+    def __init__(self, table: Table, tape: Tape, timer: QDoubleSpinBox,
                  on_stop: pyqtBoundSignal = None) -> None:
         super().__init__()
         self.__table = table
         self.__tape = tape
         self.__timer = timer
-        self.__is_debug = is_debug
+        self.__is_debug = False
         self.__runner = Runner(self.__table, self.__tape, self.__timer)
         self.__on_stop_signal = on_stop
 
