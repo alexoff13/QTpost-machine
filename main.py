@@ -1,10 +1,9 @@
 import sys
 
 from PyQt5.QtCore import Qt, QEvent
-from PyQt5.QtGui import QIcon, QImage, QPixmap, QCloseEvent
+from PyQt5.QtGui import QIcon, QPixmap, QCloseEvent
 from PyQt5.QtWidgets import (QWidget, QApplication, QDoubleSpinBox, QMainWindow, QAction,
-                             QToolBar, QGridLayout, QSizePolicy, QSplitter, QLabel, QLineEdit, QFrame, QMessageBox,
-                             QDialog)
+                             QToolBar, QGridLayout, QSizePolicy, QSplitter, QLabel, QLineEdit, QMessageBox)
 
 from post_machine_logic import Program
 from utils import Saver, Loader
@@ -50,7 +49,6 @@ class App(QMainWindow):
         self.__menu_bar = self.menuBar()
         self.__file_menu = self.__menu_bar.addMenu(str())
         self.__execution_menu = self.__menu_bar.addMenu(str())
-        # TODO: добавить ещё нужные меню
         # инициализация тулбара
         self.__toolbar = QToolBar()
         self.__status_bar_label = QLabel()
@@ -108,7 +106,7 @@ class App(QMainWindow):
     def __set_pause_action(self) -> None:
         self.__pause_action.setIcon(QIcon('icons/pause.png'))
         self.__pause_action.setText('Pause')
-        self.__pause_action.setShortcut('F4')  # TODO второй F4
+        self.__pause_action.setShortcut('F4')  # TODO второй F4 перекрывает первый
         self.__pause_action.setStatusTip('Pause program')
         self.__pause_action.triggered.connect(self.pause_program)
 

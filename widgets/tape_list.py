@@ -173,7 +173,7 @@ class TapeList(QWidget):
             data[name] = self.__tapes[name]['state']
         return data
 
-    # TODO: возможно лучше сделать выбор: загрузка с заменой или с добавлением в конец
+    # TODO: возможно лучше предложить выбор: загрузка с заменой или с добавлением в конец
     def set_from_file(self, file: dict) -> None:
         for name in list(self.__tapes.keys()):
             self.__remove_item(name)

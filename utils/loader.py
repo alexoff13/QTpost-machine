@@ -61,6 +61,8 @@ class Loader:
                 program = json.load(fin)
             self.__comment.set_from_file(program['comment'])
             self.__table.set_from_file(program['table'])
+            # TODO: проблемно, когда сначала были загружны тесты, а затем программа.
+            # тогда загруженная из программы лента будет перекрывать какой-то тест (он потеряется!!!)
             self.__tape.set_from_file(program['tape'])
             self.__saver.update_program_data()
         except (KeyError, JSONDecodeError):
@@ -81,12 +83,3 @@ class Loader:
             pass
         except (FileNotFoundError, LoadCancel):  # когда происходит какая-либо отмена
             pass
-
-    @staticmethod
-    def get_answer() -> bool:
-        message = QMessageBox()
-        message.setWindowTitle('Unsaved changes')
-        message.setText('Want to save your changes?')
-        message.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
-        answer = message.exec()
-        return answer == QMessageBox.Yes

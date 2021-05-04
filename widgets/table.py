@@ -2,7 +2,6 @@ from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QWidget, QHBoxLayout
     QCheckBox
 
 
-# TODO: добавить методы disable и able (чтобы отключать возможность редактирования во время выполнения программы)
 # TODO: будет отлично, если при выделении ячейки, также показывалось, на какой следующий стейтмент он указывает
 
 
