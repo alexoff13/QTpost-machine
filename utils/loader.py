@@ -33,6 +33,7 @@ class Loader:
     def __unsaved_program_warning(self) -> None:
         if self.__saver.is_program_unsaved():
             message = QMessageBox()
+            message.setIcon(QMessageBox.Question)
             message.setWindowTitle('Unsaved changes')
             message.setText('Want to save your changes?')
             message.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
@@ -45,6 +46,7 @@ class Loader:
     def __unsaved_tests_warning(self) -> None:
         if self.__saver.are_tests_unsaved():
             message = QMessageBox()
+            message.setIcon(QMessageBox.Question)
             message.setWindowTitle('Unsaved changes')
             message.setText('Want to save your changes?')
             message.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)

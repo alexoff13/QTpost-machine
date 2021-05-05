@@ -113,6 +113,13 @@ class Scrolling(QThread):
         self.__right_signal = right_signal
         self.__mode = is_left  # left: True | right: False
 
+    @staticmethod
+    def pause(sec: float, button: Direction) -> None:
+        k = 0
+        while k < sec and button.isDown():
+            sleep(0.05)
+            k += 0.05
+
     def set_mode(self, is_left: bool):
         self.__mode = is_left
 
@@ -123,7 +130,7 @@ class Scrolling(QThread):
         while button.isDown():
             signal.emit()
             k += 1
-            sleep(0.05 if k > 2 else 0.2)
+            self.pause(0.05 if k > 2 else 0.2, button)
 
 
 class Tape(QWidget):

@@ -83,8 +83,8 @@ class App(QMainWindow):
         self.__set_signals()
 
     def __set_pixmaps(self) -> None:
-        self.__OK = self.__OK.scaled(20, 20)
-        self.__ERROR = self.__ERROR.scaled(20, 20)
+        self.__OK = self.__OK.scaled(12, 12)
+        self.__ERROR = self.__ERROR.scaled(12, 12)
 
     def __set_signals(self) -> None:
         self.__signals.on_stop.connect(self.__enable_interface)
@@ -336,6 +336,7 @@ class App(QMainWindow):
     def closeEvent(self, a0: QCloseEvent) -> None:
         if self.__saver.has_unsaved_data():
             message = QMessageBox()
+            message.setIcon(QMessageBox.Question)
             message.setWindowTitle('Unsaved changes')
             message.setText('Want to save your changes?')
             message.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)

@@ -66,8 +66,6 @@ class TapeList(QWidget):
         self.__list.itemClicked.connect(self.__choose_tape)
         # устанавливает возможность Drag'n'Drop элементов
         self.__list.setDragDropMode(QAbstractItemView.InternalMove)
-        self.__list.setDragEnabled(True)
-        self.__list.viewport().setAcceptDrops(True)
         self.__list.setDropIndicatorShown(True)
         # устанавливает нужные триггеры для изменения имени элемента
         self.__list.itemChanged.connect(self.__check_item)
@@ -132,16 +130,17 @@ class TapeList(QWidget):
         self.__tape.reset()
 
     def __on_remove_click(self) -> None:
-        # просто получаем список выделенных и удоляем
+        # просто получаем список выделенных и удаляем
         items = self.__list.selectedItems()
-        for item in items:
-            self.__remove_item(item.text())
-        # делаем активной последюю ленту, если она есть
-        if (count := self.__list.count()) > 0:
-            self.__set_active(self.__list.item(count - 1).text())
-        # всегда должна быть хотя бы одна лента, даже если все ленты были удалены
-        else:
-            self.__add_item()
+        if len(items) > 0:
+            for item in items:
+                self.__remove_item(item.text())
+            # делаем активной последюю ленту, если она есть
+            if (count := self.__list.count()) > 0:
+                self.__set_active(self.__list.item(count - 1).text())
+            # всегда должна быть хотя бы одна лента, даже если все ленты были удалены
+            else:
+                self.__add_item()
 
     def __choose_tape(self, item: QListWidgetItem) -> None:
         name = item.text()
@@ -151,6 +150,17 @@ class TapeList(QWidget):
             self.__set_active(name)
 
     def __check_item(self, item: QListWidgetItem) -> None:
+        # ============================================== костыль ==============================================
+        # не знаю почему, но иногда в событие передается какой-то item (элемент списка), который я НЕ создавал,
+        # поэтому приходится его добавлять в свой список и ставить нужные настройки
+        try:
+            item.last_name
+        except AttributeError:
+            item.last_name = item.text()
+            item.setFlags(item.flags() | Qt.ItemIsEditable)
+            item.setFont(self.__active_font if item.last_name == self.__active_tape else self.__inactive_font)
+            self.__tapes[item.last_name]['widget'] = item
+        # =====================================================================================================
         # проверка, изменил ли элемент свое имя
         if item.last_name != item.text():
             correct_name = self.__get_tape_name(item.text(), item.last_name)
@@ -168,7 +178,7 @@ class TapeList(QWidget):
     def get_data(self) -> dict:
         self.save_active_tape()
         data = dict()
-        # for item in self.__list.
+        # TODO: иногда данные могут сохраняться не так, как находятся в списке -> неверное отображение при загрузке
         for name in self.__tapes:
             data[name] = self.__tapes[name]['state']
         return data
