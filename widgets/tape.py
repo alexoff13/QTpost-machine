@@ -52,6 +52,12 @@ class Cell(QPushButton):
         self.__is_marked = False
         self.setText(self.__NOT_MARKED)
 
+    def set_as_carriage(self) -> None:
+        self.setStyleSheet('font-weight: 500; border: 1px solid;')
+
+    def set_as_ordinary(self) -> None:
+        self.setStyleSheet('font-weight: 300;')
+
 
 class TapeElement(QWidget):
     WIDTH = 25
@@ -60,8 +66,10 @@ class TapeElement(QWidget):
 
     def __init__(self, index, is_carriage: bool = False, is_marked: bool = False, parent: any = None) -> None:
         super().__init__(parent)
-        self.__index = Index(index, self.WIDTH, self.INDEX_HEIGHT, is_carriage, parent)
+        self.__index = Index(index, self.WIDTH, self.INDEX_HEIGHT, parent=parent)
         self.__cell = Cell(self.WIDTH, self.CELL_HEIGHT, is_marked, parent)
+        if is_carriage:
+            self.set_as_carriage()
         self.__element = QVBoxLayout(self)
         self.__element.setSpacing(0)
         self.__element.addWidget(self.__index, 0)
@@ -74,9 +82,11 @@ class TapeElement(QWidget):
 
     def set_as_carriage(self) -> None:
         self.__index.set_as_carriage()
+        self.__cell.set_as_carriage()
 
     def set_as_ordinary(self) -> None:
         self.__index.set_as_ordinary()
+        self.__cell.set_as_ordinary()
 
     def is_marked(self) -> bool:
         return self.__cell.is_marked()

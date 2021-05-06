@@ -182,9 +182,10 @@ class App(QMainWindow):
     def __set_timer(self) -> None:
         self.__timer.setRange(0, 5)
         self.__timer.setDecimals(2)
-        self.__timer.setSingleStep(0.05)
+        self.__timer.setSingleStep(0.01)
         self.__timer.setSuffix(' sec')
         self.__timer.setFixedSize(80, 20)
+        self.__timer.setSpecialValueText('max')
         self.__timer.setLineEdit(QLineEdit())
 
     def __set_widgets(self) -> None:
