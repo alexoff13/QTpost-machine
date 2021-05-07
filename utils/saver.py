@@ -60,7 +60,7 @@ class Saver:
         program_data = {
             'comment': self.__comment.get_data(),
             'table': self.__table.get_data(),
-            'tape': self.__tape.get_data()
+            'tape': self.__tape_list.get_main_data()
         }
         return program_data
 
@@ -75,7 +75,7 @@ class Saver:
         self.__save_tests()
 
     def get_tests_data(self) -> dict:
-        tests_data = self.__tape_list.get_data()
+        tests_data = self.__tape_list.get_tests_data()
         return tests_data
 
     def save_all(self):
@@ -83,10 +83,11 @@ class Saver:
         self.save_tests()
 
     def has_unsaved_program_data(self) -> bool:
-        return self.__comment.has_unsaved_data() or self.__table.has_unsaved_data() or self.__tape.has_unsaved_data()
+        return self.__comment.has_unsaved_data() or self.__table.has_unsaved_data() or \
+               self.__tape_list.has_main_unsaved_data()
 
     def has_unsaved_tests_data(self) -> bool:
-        return self.__tape_list.has_unsaved_data()
+        return self.__tape_list.has_tests_unsaved_data()
 
     def has_unsaved_data(self) -> bool:
         return self.is_program_unsaved() or self.are_tests_unsaved()

@@ -1,17 +1,17 @@
 from time import sleep
 
 from PyQt5.QtCore import QThread, pyqtBoundSignal
-from PyQt5.QtWidgets import QDoubleSpinBox
 
 from utils.signals import RunnerSignals
 from widgets.table import Table
 from widgets.tape import Tape
+from widgets.timer import Timer
 
 
-class Runner():
+class Runner:
     _signals = RunnerSignals()
 
-    def __init__(self, table: Table, tape: Tape, timer: QDoubleSpinBox):
+    def __init__(self, table: Table, tape: Tape, timer: Timer):
         # super().__init__()
         self._table = table
         self._tape = tape
@@ -28,6 +28,7 @@ class Runner():
             '!': self._end
         }
         # поля для дебаггера, прошу не трогать!!!!!!!!!!!!!!!!!
+        self.commands = dict()
         self._is_event_completed = True
         self._is_running = True
         self._pause_run_program = False
@@ -109,8 +110,7 @@ class Runner():
 
 
 class Program(QThread):
-    def __init__(self, table: Table, tape: Tape, timer: QDoubleSpinBox,
-                 on_stop: pyqtBoundSignal = None) -> None:
+    def __init__(self, table: Table, tape: Tape, timer: Timer, on_stop: pyqtBoundSignal = None) -> None:
         super().__init__()
         self.__table = table
         self.__tape = tape

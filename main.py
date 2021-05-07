@@ -2,8 +2,8 @@ import sys
 
 from PyQt5.QtCore import Qt, QEvent
 from PyQt5.QtGui import QIcon, QPixmap, QCloseEvent
-from PyQt5.QtWidgets import (QWidget, QApplication, QDoubleSpinBox, QMainWindow, QAction,
-                             QToolBar, QGridLayout, QSizePolicy, QSplitter, QLabel, QLineEdit, QMessageBox)
+from PyQt5.QtWidgets import (QWidget, QApplication, QMainWindow, QAction,
+                             QToolBar, QGridLayout, QSizePolicy, QSplitter, QLabel, QMessageBox)
 
 from post_machine_logic import Program
 from utils import Saver, Loader
@@ -15,6 +15,7 @@ from widgets.tape_list import TapeList
 
 
 # TODO: во время (не) выполнения программы некоторые элементы должны быть не активными
+from widgets.timer import Timer
 
 
 class App(QMainWindow):
@@ -44,7 +45,6 @@ class App(QMainWindow):
         self.__load_tests_action = QAction()
         self.__reset_action = QAction()
         self.__exit_action = QAction()
-        self.__timer = QDoubleSpinBox()
         # инициализация меню
         self.__menu_bar = self.menuBar()
         self.__file_menu = self.__menu_bar.addMenu(str())
@@ -58,6 +58,7 @@ class App(QMainWindow):
         # ^ хотя его можно вернуть - может быть это просто фича такая?
         self.__h_splitter = QSplitter(Qt.Horizontal)  # горизонтальный сплиттер
         self.__v_splitter = QSplitter(Qt.Vertical)  # вертикальный сплиттер
+        self.__timer = Timer()
         self.__comment = Comment()
         self.__table = Table()
         self.__tape = Tape(self.__width)
@@ -179,18 +180,6 @@ class App(QMainWindow):
         self.__set_load_tests_action()
         self.__set_exit_action()
 
-    def __set_timer(self) -> None:
-        self.__timer.setRange(0, 5)
-        self.__timer.setDecimals(2)
-        self.__timer.setSingleStep(0.01)
-        self.__timer.setSuffix(' sec')
-        self.__timer.setFixedSize(80, 20)
-        self.__timer.setSpecialValueText('max')
-        self.__timer.setLineEdit(QLineEdit())
-
-    def __set_widgets(self) -> None:
-        self.__set_timer()
-
     def __set_file_menu(self) -> None:
         self.__file_menu.setTitle('&File')
         self.__file_menu.addAction(self.__save_program_action)
@@ -215,7 +204,6 @@ class App(QMainWindow):
         # TODO: добавить остальные вкладки
 
     def __set_toolbar(self) -> None:
-        self.__set_timer()
         # TODO: понять почему левый и верхний ContentMargin не работают (нижний и правый работают)
         # ^ на всякий случай можно поставить спейсер, наверно
         self.__toolbar.setMovable(False)
@@ -309,7 +297,6 @@ class App(QMainWindow):
         self.setWindowTitle('Post Machine')
 
         self.__set_actions()
-        self.__set_widgets()
         self.__set_menu_bar()
         self.__set_toolbar()
         self.__set_status_bar()

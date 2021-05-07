@@ -315,6 +315,17 @@ class Tape(QWidget):
     def has_unsaved_data(self) -> bool:
         return self.get_carriage_index() != 0 or len(self.get_data()['marked_cells']) > 0
 
+    @staticmethod
+    def is_unsaved_data(data: dict) -> bool:
+        return data['carriage'] != 0 or len(data['marked_cells']) > 0
+
+    @staticmethod
+    def get_empty_data() -> dict:
+        data = dict()
+        data['carriage'] = 0
+        data['marked_cells'] = list()
+        return data
+
     def resize_width(self, current_width: int) -> None:
         tape_width = self.__tape_elements_layout.sizeHint().width()
         tape_width = TapeElement.WIDTH if tape_width == 0 else tape_width  # TODO: исправить этот натуральный костыль
