@@ -7,7 +7,7 @@ class Timer(QDoubleSpinBox):
     DECIMALS = 2
     STEP = 0.01
     UNIT = ' sec'
-    SPECIAL_VALUE = 'max'
+    SPECIAL_VALUE = 'min'
 
     def __init__(self, parent: any = None) -> None:
         super().__init__(parent=parent)

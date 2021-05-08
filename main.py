@@ -101,7 +101,7 @@ class App(QMainWindow):
         self.__debug_action.setIcon(QIcon('icons/debug.png'))
         self.__debug_action.setText('Debug')
         self.__debug_action.setShortcut('F8')
-        self.__debug_action.setStatusTip('Debug program by step')
+        self.__debug_action.setStatusTip('Debug program step by step')
         self.__debug_action.triggered.connect(self.debug_program)
 
     # def __set_pause_action(self) -> None:
@@ -136,35 +136,35 @@ class App(QMainWindow):
         self.__save_program_action.setIcon(QIcon('icons/save-program.png'))
         self.__save_program_action.setText('Save Program')
         self.__save_program_action.setShortcut('Ctrl+P')
-        self.__save_program_action.setStatusTip('Save Program')
+        self.__save_program_action.setStatusTip('Save program')
         self.__save_program_action.triggered.connect(self.__saver.save_program)
 
     def __set_save_tests_action(self) -> None:
         self.__save_tests_action.setIcon(QIcon('icons/save-tests.png'))
         self.__save_tests_action.setText('Save Tests')
         self.__save_tests_action.setShortcut('Ctrl+T')
-        self.__save_tests_action.setStatusTip('Save Tests')
+        self.__save_tests_action.setStatusTip('Save tests')
         self.__save_tests_action.triggered.connect(self.__saver.save_tests)
 
     def __set_save_all_action(self) -> None:
         self.__save_all_action.setIcon(QIcon('icons/save-all.png'))
         self.__save_all_action.setText('Save All')
         self.__save_all_action.setShortcut('Ctrl+A')
-        self.__save_all_action.setStatusTip('Save All')
+        self.__save_all_action.setStatusTip('Save all')
         self.__save_all_action.triggered.connect(self.__saver.save_all)
 
     def __set_load_program_action(self) -> None:
         self.__load_program_action.setIcon(QIcon('icons/open-program.png'))
-        self.__load_program_action.setText('Load Program')
+        self.__load_program_action.setText('Open Program')
         self.__load_program_action.setShortcut('Ctrl+Shift+P')
-        self.__load_program_action.setStatusTip('Load Program')
+        self.__load_program_action.setStatusTip('Open program')
         self.__load_program_action.triggered.connect(self.__loader.load_program)
 
     def __set_load_tests_action(self) -> None:
         self.__load_tests_action.setIcon(QIcon('icons/open-tests.png'))
-        self.__load_tests_action.setText('Load Tests')
+        self.__load_tests_action.setText('Open Tests')
         self.__load_tests_action.setShortcut('Ctrl+Shift+T')
-        self.__load_tests_action.setStatusTip('Load Tests')
+        self.__load_tests_action.setStatusTip('Open tests')
         self.__load_tests_action.triggered.connect(self.__loader.load_tests)
 
     def __set_actions(self) -> None:
@@ -204,8 +204,6 @@ class App(QMainWindow):
         # TODO: добавить остальные вкладки
 
     def __set_toolbar(self) -> None:
-        # TODO: понять почему левый и верхний ContentMargin не работают (нижний и правый работают)
-        # ^ на всякий случай можно поставить спейсер, наверно
         self.__toolbar.setMovable(False)
         self.__toolbar.addAction(self.__run_action)
         self.__toolbar.addAction(self.__debug_action)
@@ -223,13 +221,15 @@ class App(QMainWindow):
         spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.__toolbar.addWidget(spacer)
-        self.__toolbar.addWidget(QLabel('Speed: '))
+        self.__toolbar.addWidget(QLabel('Pause: '))
         self.__toolbar.addWidget(self.__timer)
         self.__toolbar.setContentsMargins(0, 0, 5, 0)  # TODO: нормально подравнять нужно
         self.addToolBar(Qt.TopToolBarArea, self.__toolbar)
 
     def __set_status_bar(self) -> None:
+        spacer = QWidget()
         self.statusBar().setStyleSheet('QStatusBar::item {border: None;}')
+        self.statusBar().addWidget(spacer)
         self.statusBar().addWidget(self.__status_bar_icon)
         self.statusBar().addWidget(self.__status_bar_label)
 

@@ -77,8 +77,8 @@
         ""
       ]
   },
-  "tape": {
+  "main": {
     "carriage": 0,
-    "marked_cells": []
+    "marked_cells": [0, 1, 2, 3]
   }
 }

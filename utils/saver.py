@@ -28,33 +28,39 @@ class Saver:
         path = QFileDialog.getSaveFileName(self.__parent, self.CHOOSE_FILE, file_name)[0]
         return None if path == '' else path
 
-    def __save_program(self) -> None:
+    def __save_program(self) -> bool:
         data = self.get_program_data()
         try:
             with open(self.__program_path, 'w') as fout:
                 json.dump(data, fout, indent=2)
             self.__program_data = data
+            self.__parent.log('The program was saved successfully', True)
+            return True
         except TypeError:
-            pass
+            self.__parent.log('Failed to save the program', False)
+            return False
 
-    def __save_tests(self) -> None:
+    def __save_tests(self) -> bool:
         data = self.get_tests_data()
         try:
             with open(self.__tests_path, 'w') as fout:
                 json.dump(data, fout, indent=2)
             self.__tests_data = data
+            self.__parent.log('The tests were saved successfully', True)
+            return True
         except TypeError:
-            pass
+            self.__parent.log('Failed to save the tests', False)
+            return False
 
-    def save_program(self):
+    def save_program(self) -> bool:
         if self.__program_path is None:
-            self.save_program_as()
+            return self.save_program_as()
         else:
-            self.__save_program()
+            return self.__save_program()
 
-    def save_program_as(self):
+    def save_program_as(self) -> bool:
         self.__program_path = self.__get_file_path(self.PROGRAM_NAME)
-        self.__save_program()
+        return self.__save_program()
 
     def get_program_data(self) -> dict:
         program_data = {
@@ -64,23 +70,31 @@ class Saver:
         }
         return program_data
 
-    def save_tests(self):
+    def save_tests(self) -> bool:
         if self.__tests_path is None:
-            self.save_tests_as()
+            return self.save_tests_as()
         else:
-            self.__save_tests()
+            return self.__save_tests()
 
-    def save_tests_as(self):
+    def save_tests_as(self) -> bool:
         self.__tests_path = self.__get_file_path(self.TESTS_NAME)
-        self.__save_tests()
+        return self.__save_tests()
 
     def get_tests_data(self) -> dict:
         tests_data = self.__tape_list.get_tests_data()
         return tests_data
 
     def save_all(self):
-        self.save_program()
-        self.save_tests()
+        is_program_saved = self.save_program()
+        are_tests_saved = self.save_tests()
+        if is_program_saved and are_tests_saved:
+            self.__parent.log('The program and the tests were saved successfully', True)
+        elif is_program_saved and not are_tests_saved:
+            self.__parent.log('Only the program was saved successfully', False)
+        elif not is_program_saved and are_tests_saved:
+            self.__parent.log('Only the tests were saved successfully', False)
+        else:
+            self.__parent.log('Failed to save the program and the tests', False)
 
     def has_unsaved_program_data(self) -> bool:
         return self.__comment.has_unsaved_data() or self.__table.has_unsaved_data() or \

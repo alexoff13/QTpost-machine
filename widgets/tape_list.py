@@ -12,7 +12,7 @@ class TapeList(QWidget):
         super().__init__(parent=parent)
         self.__tape = tape
         self.__parent = parent
-        self.__button_width = 50
+        self.__button_width = 60
         self.__button_height = 25
         self.__active_tape = None
         
@@ -108,6 +108,8 @@ class TapeList(QWidget):
             # делаем активной последюю ленту, если она есть
             if self.__main_list.main != self.__active_tape and self.__tests_list.get_last() is not None:
                 self.__set_active(self.__tests_list.get_last())
+            else:
+                self.__set_active(self.__main_list.main)
 
     def __choose_tape(self, item: QListWidgetItem) -> None:
         if item != self.__active_tape:
@@ -118,32 +120,19 @@ class TapeList(QWidget):
         try:
             item.last_name
         except AttributeError:
-            if item.text() == MainList.DEFAULT_NAME:
-                test_name = self.__tests_list.get_test_name(item.text(), other=item.text())
-                self.__tests_list.add_test(test_name, state=self.get_main_data(), test=item)
-                self.__active_tape = item
-            else:
-                self.__tests_list.remove_test(item)
-            # print(f'<{item.toolTip()}>')
-            # self.__tests_list.remove_test(item)
-
-            # item.last_name = item.text()
-            # item.setFlags(item.flags() | Qt.ItemIsEditable)
-            # item.setFont(self.__active_font if item.last_name == self.__active_tape else self.__inactive_font)
-            # print(self.__tapes)
-            # if item.last_name not in self.__tapes:
-            #     self.__tapes[item.last_name] = dict(widget=None, state=None)
-            # self.__tapes[item.last_name]['widget'] = item
-
-        # # проверка, изменил ли элемент свое имя
-        # if item.last_name != item.text():
-        #     correct_name = self.__get_test_name(item.text(), item.last_name)
-        #     if item.text() != correct_name:
-        #         item.setText(correct_name)
-        #     if item.last_name == self.__active_tape:
-        #         self.__active_tape = correct_name
-        #     self.__tapes[correct_name] = self.__tapes.pop(item.last_name)
-        #     item.last_name = correct_name
+            if self.__main_list.last_time_dragged > self.__tests_list.last_time_dragged:
+                test_name = self.__tests_list.get_test_name(item.text())
+                # TODO: но таким образом он добавляет всегда в конец
+                test = self.__tests_list.add_test(test_name, state=self.get_main_data(), reset=False)
+                self.__set_inactive(test)
+            self.__tests_list.remove_test(item, False)
+        else:
+            test_name = item.text()
+            if item.last_name != test_name:
+                correct_name = self.__tests_list.get_test_name(test_name, item.last_name)
+                if test_name != correct_name:
+                    item.setText(correct_name)
+                self.__tests_list.rename(item.last_name, correct_name)
 
     def save_active_tape(self) -> None:
         if self.__active_tape == self.__main_list.main:
@@ -160,9 +149,12 @@ class TapeList(QWidget):
         return self.__tests_list.get_data()
 
     def set_main_from_file(self, file: dict) -> None:
-        self.__main_list.state = file
+        if self.__active_tape == self.__main_list.main:
+            self.__tape.set_from_file(file)
+        else:
+            self.__main_list.state = file
 
-    def set_test_from_file(self, file: dict) -> None:
+    def set_tests_from_file(self, file: dict) -> None:
         self.__tests_list.set_from_file(file)
 
     def has_main_unsaved_data(self) -> bool:

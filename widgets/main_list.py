@@ -1,3 +1,8 @@
+from typing import Union
+
+from time import time
+
+from PyQt5 import QtCore
 from PyQt5.QtWidgets import QListWidget, QAbstractItemView, QListWidgetItem
 
 from widgets.tape import Tape
@@ -13,15 +18,11 @@ class MainList(QListWidget):
         self.__state = Tape.get_empty_data()
         self.__set_main()
         self.__set_list()
+        self.__last_time_dragged = float()
 
-    def __set_main(self):
-        self.__main.setText(self.DEFAULT_NAME)
-
-    def __set_list(self) -> None:
-        self.setFixedHeight(20)
-        self.setDragDropMode(QAbstractItemView.DragDrop)
-        self.setAcceptDrops(False)
-        self.addItem(self.__main)
+    @property
+    def last_time_dragged(self) -> float:
+        return self.__last_time_dragged
 
     @property
     def main(self) -> QListWidgetItem:
@@ -34,6 +35,19 @@ class MainList(QListWidget):
     @state.setter
     def state(self, value: dict) -> None:
         self.__state = value.copy()
+
+    def startDrag(self, supported_actions: Union[QtCore.Qt.DropActions, QtCore.Qt.DropAction]) -> None:
+        self.__last_time_dragged = time()
+        super().startDrag(supported_actions)
+
+    def __set_main(self):
+        self.__main.setText(self.DEFAULT_NAME)
+
+    def __set_list(self) -> None:
+        self.setFixedHeight(20)
+        self.setDragDropMode(QAbstractItemView.DragDrop)
+        self.setAcceptDrops(False)
+        self.addItem(self.__main)
 
     def save_state(self) -> None:
         self.__state = self.__tape.get_data()

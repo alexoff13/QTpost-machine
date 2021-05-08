@@ -59,29 +59,30 @@ class Loader:
     def load_program(self) -> None:
         try:
             self.__unsaved_program_warning()
-            with open(self.__get_file_path(), 'r') as fin:
+            path = self.__get_file_path()
+            with open(path, 'r') as fin:
                 program = json.load(fin)
             self.__comment.set_from_file(program['comment'])
             self.__table.set_from_file(program['table'])
             # TODO: проблемно, когда сначала были загружны тесты, а затем программа.
             # тогда загруженная из программы лента будет перекрывать какой-то тест (он потеряется!!!)
-            self.__tape.set_from_file(program['tape'])
+            self.__tape_list.set_main_from_file(program['main'])
             self.__saver.update_program_data()
+            self.__parent.log('The program has been successfully opened', True)
         except (KeyError, JSONDecodeError):
-            # TODO: код для посланания сообщения, что файл неверного формата
-            pass
+            self.__parent.log('Wrong program file selected or the program file is damaged', False)
         except (FileNotFoundError, LoadCancel):  # когда происходит какая-либо отмена
-            pass
+            self.__parent.log('Failed to open the program', False)
 
     def load_tests(self) -> None:
         try:
             self.__unsaved_tests_warning()
             with open(self.__get_file_path(), 'r') as fin:
                 tests = json.load(fin)
-            self.__tape_list.set_from_file(tests)
+            self.__tape_list.set_tests_from_file(tests)
             self.__saver.update_tests_data()
+            self.__parent.log('The tests have been successfully opened', True)
         except (KeyError, JSONDecodeError):
-            # TODO: код для посланания сообщения, что файл неверного формата
-            pass
+            self.__parent.log('Wrong tests file selected or the tests file is damaged', False)
         except (FileNotFoundError, LoadCancel):  # когда происходит какая-либо отмена
-            pass
+            self.__parent.log('Failed to open the tests', False)

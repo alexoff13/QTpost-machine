@@ -111,6 +111,10 @@ class Direction(QPushButton):
         super().__init__(parent=parent)
         self.setIcon(QIcon(self.LEFT if is_left else self.RIGHT))
         self.setFixedSize(self.WIDTH, self.HEIGHT)
+        if is_left:
+            self.setToolTip('Press the button to move the carriage to the left, or hold it to scroll')
+        else:
+            self.setToolTip('Press the button to move the carriage to the right, or hold it to scroll')
 
 
 class Scrolling(QThread):

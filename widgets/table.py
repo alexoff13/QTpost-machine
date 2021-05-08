@@ -1,10 +1,9 @@
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, \
-    QCheckBox, QStyledItemDelegate, QLineEdit
+    QCheckBox, QStyledItemDelegate, QLineEdit, QSizePolicy
 
 
-# TODO: будет отлично, если при выделении ячейки, также показывалось, на какой следующий стейтмент он указывает
 class StyledItemDelegateForCommand(QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         editor = super().createEditor(parent, option, index)
@@ -32,7 +31,7 @@ class Table(QWidget):
     def __init__(self, parent: any = None) -> None:
         super().__init__(parent=parent)
         self.__parent = parent
-        self.__button_width = 50
+        self.__button_width = 60
         self.__button_height = 25
 
         self.__insert = QPushButton()
@@ -49,12 +48,12 @@ class Table(QWidget):
         self.__current_line_in_run = 0
         self.draw()
 
-    def set_current_line_in_run(self, line:int):
+    def set_current_line_in_run(self, line: int):
         self.__current_line_in_run = line
 
     def __set_insert(self) -> None:
         self.__insert.setText('Insert')
-        self.__insert.setToolTip('Insert a line before the selected one')
+        self.__insert.setToolTip('Inserts a line before the selected one')
         self.__insert.setFixedWidth(self.__button_width)
         self.__insert.clicked.connect(lambda: self.__insert_row())
 
@@ -64,7 +63,7 @@ class Table(QWidget):
 
     def __set_remove(self) -> None:
         self.__remove.setText('Remove')
-        self.__remove.setToolTip('Remove the selected line')
+        self.__remove.setToolTip('Removes the selected line')
         self.__remove.setFixedWidth(self.__button_width)
         self.__remove.clicked.connect(lambda: self.__remove_row())
 
@@ -75,7 +74,7 @@ class Table(QWidget):
 
     def __set_clear(self) -> None:
         self.__clear.setText('Clear')
-        self.__clear.setToolTip('Clear the selected line')
+        self.__clear.setToolTip('Clears the selected line')
         self.__clear.setFixedWidth(self.__button_width)
         self.__clear.clicked.connect(lambda: self.__clear_row())
 
@@ -90,7 +89,7 @@ class Table(QWidget):
     def __set_shift_mode(self) -> None:
         self.__shift_mode.setText('Shift')
         self.__shift_mode.setToolTip('Shifts values after <b>insertion</b> or <b>removal</b>')
-        self.__shift_mode.clicked.connect(lambda: self.__reverse_shift_mode())
+        self.__shift_mode.clicked.connect(self.__reverse_shift_mode)
 
     def __reverse_shift_mode(self) -> None:
         self.__shift_mode_on = not self.__shift_mode_on
@@ -115,11 +114,10 @@ class Table(QWidget):
         self.__buttons_layout.addWidget(self.__insert)
         self.__buttons_layout.addWidget(self.__remove)
         self.__buttons_layout.addWidget(self.__clear)
-        # просто спейсер, чтобы поставить чекбокс справа
-        # spacer = QWidget()
-        # spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        # self.__buttons_layout.addWidget(spacer)
         self.__buttons_layout.addWidget(self.__shift_mode)
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.__buttons_layout.addWidget(spacer)
         self.__buttons_layout.setContentsMargins(0, 0, 0, 0)
 
     def __set_buttons(self) -> None:
