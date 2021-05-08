@@ -83,8 +83,7 @@ class Runner:
         self._is_running = True
         self.commands = self._table.get_data()
         if self._is_running and self._is_event_completed:
-            self._table.set_current_line_in_run(self.line)
-            self._signals.select_row_in_table.emit(self._signals.update)
+            self.__select_line()
             self._is_event_completed = False
             # self.__signals.go_right.emit(self.__signals.update)
             # TODO добавить: если стейт пустой, то просто переход на следующую строку
@@ -98,8 +97,7 @@ class Runner:
 
         while self._is_running:
             if self._is_event_completed and not self._pause_run_program:
-                self._table.set_current_line_in_run(self.line)
-                self._signals.select_row_in_table.emit(self._signals.update)
+                self.__select_line()
                 self._is_event_completed = False
                 # self.__signals.go_right.emit(self.__signals.update)
                 # TODO добавить: если стейт пустой, то просто переход на следующую строку
@@ -107,6 +105,10 @@ class Runner:
                 self._pause()
             else:
                 sleep(0.00001)
+
+    def __select_line(self):
+        self._table.set_current_line_in_run(self.line)
+        self._signals.select_row_in_table.emit(self._signals.update)
 
     def pause_run(self):
         self._pause_run_program = not self._pause_run_program
