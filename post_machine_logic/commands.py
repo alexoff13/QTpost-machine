@@ -114,6 +114,7 @@ class Runner:
         self._pause_run_program = not self._pause_run_program
 
     def stop(self) -> None:
+        self._pause_run_program = False
         self._is_running = False
 
     def update(self):
