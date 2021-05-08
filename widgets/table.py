@@ -1,8 +1,30 @@
+from PyQt5.QtCore import QRegExp
+from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, \
-    QCheckBox
+    QCheckBox, QStyledItemDelegate, QLineEdit
 
 
 # TODO: будет отлично, если при выделении ячейки, также показывалось, на какой следующий стейтмент он указывает
+class StyledItemDelegateForCommand(QStyledItemDelegate):
+    def createEditor(self, parent, option, index):
+        editor = super().createEditor(parent, option, index)
+        if isinstance(editor, QLineEdit):
+            validator = QRegExpValidator(
+                QRegExp(r"[\+x><\?!]"), editor
+            )
+            editor.setValidator(validator)
+        return editor
+
+
+class StyledItemDelegateForState(QStyledItemDelegate):
+    def createEditor(self, parent, option, index):
+        editor = super().createEditor(parent, option, index)
+        if isinstance(editor, QLineEdit):
+            validator = QRegExpValidator(
+                QRegExp(r"^[0-9]+\s?[0-9]*"), editor
+            )
+            editor.setValidator(validator)
+        return editor
 
 
 class Table(QWidget):
@@ -24,8 +46,11 @@ class Table(QWidget):
         self.__main_layout = QVBoxLayout()
 
         self.__shift_mode_on = False
-
+        self.__current_line_in_run = 0
         self.draw()
+
+    def set_current_line_in_run(self, line:int):
+        self.__current_line_in_run = line
 
     def __set_insert(self) -> None:
         self.__insert.setText('Insert')
@@ -72,7 +97,7 @@ class Table(QWidget):
 
     def __shift_values_table(self, current_row, is_insert=True) -> None:
         if self.__shift_mode_on:
-            for i in range(self.__table.rowCount()+1):
+            for i in range(self.__table.rowCount() + 1):
                 try:
                     current_state = int(self.__table.item(i, 1).text())
                     if current_state - 1 >= current_row:
@@ -102,15 +127,23 @@ class Table(QWidget):
         self.__buttons.setFixedHeight(self.__button_height)
 
     def __set_table(self) -> None:
+        delegate_for_command = StyledItemDelegateForCommand(self.__table)
+        delegate_for_state = StyledItemDelegateForState(self.__table)
         self.__table.setRowCount(4)
         self.__table.setColumnCount(3)
+        self.__table.setItemDelegateForColumn(0, delegate_for_command)
+        self.__table.setItemDelegateForColumn(1, delegate_for_state)
         self.__table.setHorizontalHeaderLabels(["Command", "Jump to state", "Comment"])
+        self.__table.horizontalHeader().setStretchLastSection(True)
         self.__table.cellClicked.connect(self.row_column_clicked)
 
     def __set_main_layout(self) -> None:
         self.__main_layout.addWidget(self.__buttons)
         self.__main_layout.addWidget(self.__table)
         self.__main_layout.setContentsMargins(0, 0, 0, 0)
+
+    def set_selected_line(self):
+        self.__table.selectRow(self.__current_line_in_run)
 
     def draw(self):
         self.__set_insert()

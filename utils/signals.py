@@ -7,6 +7,7 @@ class RunnerSignals(QObject):
     go_left = QtCore.pyqtSignal(QtCore.pyqtBoundSignal)
     mark_carriage = QtCore.pyqtSignal(QtCore.pyqtBoundSignal)
     unmark_carriage = QtCore.pyqtSignal(QtCore.pyqtBoundSignal)
+    select_row_in_table = QtCore.pyqtSignal(QtCore.pyqtBoundSignal)
     update = QtCore.pyqtSignal()
 
 

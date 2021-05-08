@@ -32,13 +32,18 @@ class Runner:
         self._is_event_completed = True
         self._is_running = True
         self._pause_run_program = False
-        self.line = 0
+        self.__line = 0
+
+    @property
+    def line(self):
+        return self.__line
 
     def _set_signals(self) -> None:
         self._signals.go_right.connect(self._tape.go_right)
         self._signals.go_left.connect(self._tape.go_left)
         self._signals.mark_carriage.connect(self._tape.mark_carriage)
         self._signals.unmark_carriage.connect(self._tape.unmark_carriage)
+        self._signals.select_row_in_table.connect(self._table.set_selected_line)
         self._signals.update.connect(self.update)
 
     # такой странный слип, чтобы, например, при переходе таймера с 5 на 0.01, сразу же происходили изменения
@@ -78,23 +83,27 @@ class Runner:
         self._is_running = True
         self.commands = self._table.get_data()
         if self._is_running and self._is_event_completed:
+            self._table.set_current_line_in_run(self.line)
+            self._signals.select_row_in_table.emit(self._signals.update)
             self._is_event_completed = False
             # self.__signals.go_right.emit(self.__signals.update)
             # TODO добавить: если стейт пустой, то просто переход на следующую строку
-            self.line = self._commands[self.commands[self.line][0]](self.commands[self.line][1])
+            self.__line = self._commands[self.commands[self.__line][0]](self.commands[self.__line][1])
             self._pause()
 
     def run(self):
         commands = self._table.get_data()
         self._is_event_completed = True
         self._is_running = True
-        line = 0
+
         while self._is_running:
             if self._is_event_completed and not self._pause_run_program:
+                self._table.set_current_line_in_run(self.line)
+                self._signals.select_row_in_table.emit(self._signals.update)
                 self._is_event_completed = False
                 # self.__signals.go_right.emit(self.__signals.update)
                 # TODO добавить: если стейт пустой, то просто переход на следующую строку
-                line = self._commands[commands[line][0]](commands[line][1])
+                self.__line = self._commands[commands[self.__line][0]](commands[self.__line][1])
                 self._pause()
             else:
                 sleep(0.00001)
@@ -127,6 +136,9 @@ class Program(QThread):
 
     def set_mode(self, is_debug: bool):
         self.__is_debug = is_debug
+
+    def debug(self) -> None:
+        self.__runner.debug()
 
     def run(self) -> None:
         try:

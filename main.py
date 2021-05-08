@@ -35,7 +35,7 @@ class App(QMainWindow):
         # инициализация действий и виджетов для тулбаров
         self.__run_action = QAction()
         self.__debug_action = QAction()
-        self.__pause_action = QAction()
+        # self.__pause_action = QAction()
         self.__stop_action = QAction()
         self.__clear_tape_action = QAction()
         self.__save_program_action = QAction()
@@ -67,7 +67,7 @@ class App(QMainWindow):
         self.__OK = QPixmap('icons/ok.png')
         self.__ERROR = QPixmap('icons/error.png')
         self.__RUN = QIcon('icons/run.png')
-        self.__PAUSE = QIcon('icons/pause.png')
+        # self.__PAUSE = QIcon('icons/pause.png')
 
         # инициализация раннера, сейвера и загрузчика
         self.__saver = Saver(self, self.__comment, self.__table, self.__tape, self.__tape_list)
@@ -104,12 +104,12 @@ class App(QMainWindow):
         self.__debug_action.setStatusTip('Debug program by step')
         self.__debug_action.triggered.connect(self.debug_program)
 
-    def __set_pause_action(self) -> None:
-        self.__pause_action.setIcon(QIcon('icons/pause.png'))
-        self.__pause_action.setText('Pause')
-        self.__pause_action.setShortcut('F4')  # TODO второй F4 перекрывает первый
-        self.__pause_action.setStatusTip('Pause program')
-        self.__pause_action.triggered.connect(self.pause_program)
+    # def __set_pause_action(self) -> None:
+    #     self.__pause_action.setIcon(QIcon('icons/pause.png'))
+    #     self.__pause_action.setText('Pause')
+    #     self.__pause_action.setShortcut('F4')  # TODO второй F4 перекрывает первый
+    #     self.__pause_action.setStatusTip('Pause program')
+    #     self.__pause_action.triggered.connect(self.pause_program)
 
     def __set_clear_tape_action(self) -> None:
         self.__clear_tape_action.setIcon(QIcon('icons/clear-tape.png'))
@@ -170,7 +170,7 @@ class App(QMainWindow):
     def __set_actions(self) -> None:
         self.__set_run_action()
         self.__set_debug_action()
-        self.__set_pause_action()
+        # self.__set_pause_action()
         self.__set_stop_action()
         self.__set_save_program_action()
         self.__set_clear_tape_action()
@@ -195,7 +195,7 @@ class App(QMainWindow):
         self.__execution_menu.setTitle('&Execution')
         self.__execution_menu.addAction(self.__run_action)
         self.__execution_menu.addAction(self.__debug_action)
-        self.__execution_menu.addAction(self.__pause_action)
+        # self.__execution_menu.addAction(self.__pause_action)
         self.__execution_menu.addAction(self.__stop_action)
 
     def __set_menu_bar(self) -> None:
@@ -209,7 +209,7 @@ class App(QMainWindow):
         self.__toolbar.setMovable(False)
         self.__toolbar.addAction(self.__run_action)
         self.__toolbar.addAction(self.__debug_action)
-        self.__toolbar.addAction(self.__pause_action)
+        # self.__toolbar.addAction(self.__pause_action)
         self.__toolbar.addAction(self.__stop_action)
         self.__toolbar.addSeparator()
         self.__toolbar.addAction(self.__save_program_action)
@@ -272,16 +272,21 @@ class App(QMainWindow):
 
     def run_program(self):
         # self.__disable_interface()
+        if self.__program.isRunning():
+            self.__program.pause()
+            return
         self.__program.set_mode(False)
+        self.__program.isRunning()
         self.__program.start()
 
     def debug_program(self):
         # self.__disable_interface()
-        self.__program.set_mode(True)
-        self.__program.start()
+        # self.__program.set_mode(True)
+        # self.__program.start()
+        self.__program.debug()
 
-    def pause_program(self):
-        self.__program.pause()
+    # def pause_program(self):
+    #     self.__program.pause()
 
     def stop_program(self):
         # self.__enable_interface()
