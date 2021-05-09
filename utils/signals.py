@@ -18,3 +18,8 @@ class ProgramSignals(QObject):
 class TapeSignals(QObject):
     to_left = QtCore.pyqtSignal()
     to_right = QtCore.pyqtSignal()
+
+
+class MainSignals(QObject):
+    active_reset = QtCore.pyqtSignal()
+    inactive_reset = QtCore.pyqtSignal()

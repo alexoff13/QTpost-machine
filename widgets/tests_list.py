@@ -12,6 +12,7 @@ from widgets.tape import Tape
 class Data:
     test: QListWidgetItem
     state: dict
+    saved_state: dict
 
 
 class TestsList(QListWidget):
@@ -47,7 +48,7 @@ class TestsList(QListWidget):
         return new_name
 
     def add_test(self, test_name: str = None, state: dict = None, test: QListWidgetItem = None,
-                 reset: bool = True) -> QListWidgetItem:
+                 reset: bool = True, saved_state: dict = None) -> QListWidgetItem:
         if test_name is None:
             test_name = self.get_test_name()
         if test is None:
@@ -61,6 +62,7 @@ class TestsList(QListWidget):
         self.__tests[test_name] = Data()
         self.__tests[test_name].test = test
         self.__tests[test_name].state = state if state is not None else Tape.get_empty_data()
+        self.__tests[test_name].saved_state = saved_state
         return test
 
     def remove_test(self, test: QListWidgetItem, internal_remove: bool = True) -> None:
@@ -74,6 +76,9 @@ class TestsList(QListWidget):
     def get_state(self, test: QListWidgetItem) -> dict:
         return self.__tests[test.text()].state
 
+    def get_saved_state(self, test: QListWidgetItem) -> dict:
+        return self.__tests[test.text()].saved_state
+
     def rename(self, test_name: str, new_test_name: str) -> None:
         self.__tests[new_test_name] = self.__tests.pop(test_name)
         self.__tests[new_test_name].test.last_name = new_test_name
@@ -83,9 +88,12 @@ class TestsList(QListWidget):
             self.takeItem(self.row(self.__tests[test_name].test))
         self.__tests.clear()
 
-    def save_state(self, test: QListWidgetItem) -> None:
+    def save_state(self, test: QListWidgetItem, global_: bool = False) -> None:
         if test.text() in self.__tests:
-            self.__tests[test.text()].state = self.__tape.get_data()
+            if global_:
+                self.__tests[test.text()].saved_state = self.__tape.get_data()
+            else:
+                self.__tests[test.text()].state = self.__tape.get_data()
 
     def get_data(self) -> dict:
         data = dict()
@@ -97,7 +105,7 @@ class TestsList(QListWidget):
     def set_from_file(self, file: dict) -> None:
         self.clear()
         for test_name in file:
-            self.add_test(test_name, file[test_name])
+            self.add_test(test_name, file[test_name], saved_state=file[test_name])
 
     def has_unsaved_data(self) -> bool:
         return len(self.__tests) > 0

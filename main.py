@@ -1,43 +1,61 @@
 import sys
 
 from PyQt5.QtCore import Qt, QEvent
-from PyQt5.QtGui import QIcon, QPixmap, QCloseEvent
+from PyQt5.QtGui import QIcon, QPixmap, QCloseEvent, QFont
 from PyQt5.QtWidgets import (QWidget, QApplication, QMainWindow, QAction,
                              QToolBar, QGridLayout, QSizePolicy, QSplitter, QLabel, QMessageBox, QTextEdit)
 
 from post_machine_logic import Program
 from utils import Saver, Loader
-from utils.signals import ProgramSignals
+from utils.signals import ProgramSignals, MainSignals
 from widgets.comment import Comment
 from widgets.table import Table
 from widgets.tape import Tape
 from widgets.tape_list import TapeList
 from widgets.timer import Timer
 
+#
+# HELP = """<p>The program consists of numbered lines. Each line contains one of the following commands:</p>
+# <ul>
+# <li><code>&gt;</code> N - move the carriage to the right by 1 cell and go to the row with the number N</li>
+# <li><code>&lt;</code> N - move the carriage to the left by 1 cell and go to the row with the number N</li>
+# <li><code>x</code> N - erase the label and go to the line with the number N</li>
+# <li><code>+</code> N - put a label and go to the line with the number N</li>
+# <li><code>?</code> N, M - if the current cell is not marked, then go to the row with the number N, otherwise go to the row M</li>
+# <li><code>!</code> - stop the program</li>
+# </ul>
+#
+# For more information, go to the program page <a href="https://github.com/alexoff13/QTpost-machine">https://github.com/alexoff13/QTpost-machine</a>"""
 
-HELP = """<p>The program consists of numbered lines. Each line contains one of the following commands:</p>
-<ul>
-<li><code>&gt;</code> N - move the carriage to the right by 1 cell and go to the row with the number N</li>
-<li><code>&lt;</code> N - move the carriage to the left by 1 cell and go to the row with the number N</li>
-<li><code>x</code> N - erase the label and go to the line with the number N</li>
-<li><code>+</code> N - put a label and go to the line with the number N</li>
-<li><code>?</code> N, M - if the current cell is not marked, then go to the row with the number N, otherwise go to the row M</li>
-<li><code>!</code> - stop the program</li>
-</ul>
-
-For more information, go to the program page <a href="https://github.com/alexoff13/QTpost-machine">https://github.com/alexoff13/QTpost-machine</a>"""
-
-
-ABOUT = """"""
+# ABOUT = """<h2 style="font-family: sans-serif; font-weight: 900; display: flex; justify-content: center; line-height: 0; margin: 40px;"
+#     >Post Machine Emulator</h2>
+#     <p style="font-family: sans-serif; line-height: 0; margin: 30px;"
+#     >Distributed under The MIT License.</p>
+#     <p style="font-family: sans-serif; line-height: 0; margin: 30px;"
+#     >Version 1.0.0.0.1</p>
+#     <p style="font-family: sans-serif; line-height: 0; margin: 30px;"
+#     >Developed by <a href="https://github.com/markov-avl" style="text-decoration: none; color: blue">Andrey Markov</a> and <a href="https://github.com/alexoff13" style="text-decoration: none; color: blue">Alexey Davydov</a></p>
+#     <p style="font-family: sans-serif; line-height: 0; margin: 30px;"
+#     >Repository: <a href="https://github.com/alexoff13/QTpost-machine" style="text-decoration: none; color: blue">https://github.com/alexoff13/QTpost-machine</a></p><p></p>"""
 
 FULL_PATH = 'C:/Projects/QTpost-machine/'
 
 
+with open(f'{FULL_PATH}strings/help.html') as fin:
+    HELP = fin.read()
+
+with open(f'{FULL_PATH}strings/about.html') as fin:
+    ABOUT = fin.read()
+
+
 class App(QMainWindow):
     __signals = ProgramSignals()
+    __tape_signals = MainSignals()
 
     def __init__(self):
         super().__init__()
+        # установка сигналов
+        self.__set_signals()
 
         self.__help_content = None
         self.__about = None
@@ -52,15 +70,15 @@ class App(QMainWindow):
         # инициализация действий и виджетов для тулбаров
         self.__run_action = QAction()
         self.__debug_action = QAction()
-        # self.__pause_action = QAction()
         self.__stop_action = QAction()
         self.__clear_tape_action = QAction()
+        self.__reset_tape_action = QAction()
+        self.__save_tape_action = QAction()
         self.__save_program_action = QAction()
         self.__save_tests_action = QAction()
         self.__save_all_action = QAction()
         self.__load_program_action = QAction()
         self.__load_tests_action = QAction()
-        self.__reset_action = QAction()
         self.__help_content_action = QAction()
         self.__about_action = QAction()
         self.__exit_action = QAction()
@@ -75,20 +93,18 @@ class App(QMainWindow):
         self.__status_bar_label = QLabel()
         self.__status_bar_icon = QLabel()
         # инициализация основых элементов экрана
-        # TODO: исправить баг со сплиттером - при чрезмерном сдвиге в сторону, виджет в той же стороне исчезает
-        # ^ хотя его можно вернуть - может быть это просто фича такая?
         self.__h_splitter = QSplitter(Qt.Horizontal)  # горизонтальный сплиттер
         self.__v_splitter = QSplitter(Qt.Vertical)  # вертикальный сплиттер
         self.__timer = Timer()
         self.__comment = Comment()
         self.__table = Table()
         self.__tape = Tape(self.__width)
-        self.__tape_list = TapeList(self.__tape)
+        self.__tape_list = TapeList(self.__tape, self.__tape_signals)
         # инициализация иконок
         self.__OK = QPixmap(f'{FULL_PATH}icons/ok.png')
         self.__ERROR = QPixmap(f'{FULL_PATH}icons/error.png')
         self.__RUN = QIcon(f'{FULL_PATH}icons/run.png')
-        # self.__PAUSE = QIcon('icons/pause.png')
+        self.__PAUSE = QIcon(f'{FULL_PATH}icons/pause.png')
 
         # инициализация раннера, сейвера и загрузчика
         self.__saver = Saver(self, self.__comment, self.__table, self.__tape, self.__tape_list)
@@ -101,15 +117,15 @@ class App(QMainWindow):
         self.__set_pixmaps()
         # инициализация пользовательского интерфейса
         self.init_ui()
-        # установка сигналов
-        self.__set_signals()
 
     def __set_pixmaps(self) -> None:
         self.__OK = self.__OK.scaled(12, 12)
         self.__ERROR = self.__ERROR.scaled(12, 12)
 
     def __set_signals(self) -> None:
-        self.__signals.on_stop.connect(self.__enable_interface)
+        self.__signals.on_stop.connect(self.__instopped_interface)
+        self.__tape_signals.active_reset.connect(self.active_reset_tape)
+        self.__tape_signals.inactive_reset.connect(self.inactive_reset_tape)
 
     def __set_run_action(self) -> None:
         self.__run_action.setIcon(QIcon(f'{FULL_PATH}icons/run.png'))
@@ -125,19 +141,27 @@ class App(QMainWindow):
         self.__debug_action.setStatusTip('Debug program step by step')
         self.__debug_action.triggered.connect(self.debug_program)
 
-    # def __set_pause_action(self) -> None:
-    #     self.__pause_action.setIcon(QIcon('icons/pause.png'))
-    #     self.__pause_action.setText('Pause')
-    #     self.__pause_action.setShortcut('F4')  # TODO второй F4 перекрывает первый
-    #     self.__pause_action.setStatusTip('Pause program')
-    #     self.__pause_action.triggered.connect(self.pause_program)
-
     def __set_clear_tape_action(self) -> None:
         self.__clear_tape_action.setIcon(QIcon(f'{FULL_PATH}icons/clear-tape.png'))
         self.__clear_tape_action.setText('Clear')
         self.__clear_tape_action.setShortcut('F9')
-        self.__clear_tape_action.setStatusTip('Clear tape')
+        self.__clear_tape_action.setStatusTip('Clear selected tape')
         self.__clear_tape_action.triggered.connect(self.clear_tape)
+
+    def __set_save_tape_action(self) -> None:
+        self.__save_tape_action.setIcon(QIcon(f'{FULL_PATH}icons/save-tape.png'))
+        self.__save_tape_action.setText('Save')
+        self.__save_tape_action.setShortcut('F10')
+        self.__save_tape_action.setStatusTip('Save selected tape state')
+        self.__save_tape_action.triggered.connect(self.save_tape)
+
+    def __set_reset_tape_action(self) -> None:
+        self.__reset_tape_action.setEnabled(False)
+        self.__reset_tape_action.setIcon(QIcon(f'{FULL_PATH}icons/reset-tape.png'))
+        self.__reset_tape_action.setText('Reset')
+        self.__reset_tape_action.setShortcut('F11')
+        self.__reset_tape_action.setStatusTip('Reset selected tape to the latest save')
+        self.__reset_tape_action.triggered.connect(self.reset_tape)
 
     def __set_stop_action(self) -> None:
         self.__stop_action.setIcon(QIcon(f'{FULL_PATH}icons/stop.png'))
@@ -205,11 +229,13 @@ class App(QMainWindow):
         self.__set_debug_action()
         self.__set_stop_action()
         self.__set_save_program_action()
-        self.__set_clear_tape_action()
         self.__set_save_tests_action()
         self.__set_save_all_action()
         self.__set_load_program_action()
         self.__set_load_tests_action()
+        self.__set_clear_tape_action()
+        self.__set_save_tape_action()
+        self.__set_reset_tape_action()
         self.__set_help_content_action()
         self.__set_about_action()
         self.__set_exit_action()
@@ -234,6 +260,8 @@ class App(QMainWindow):
     def __set_tape_menu(self) -> None:
         self.__tape_menu.setTitle('&Tape')
         self.__tape_menu.addAction(self.__clear_tape_action)
+        self.__tape_menu.addAction(self.__save_tape_action)
+        self.__tape_menu.addAction(self.__reset_tape_action)
 
     def __set_help_menu(self) -> None:
         self.__help_menu.setTitle('&Help')
@@ -245,13 +273,11 @@ class App(QMainWindow):
         self.__set_execution_menu()
         self.__set_tape_menu()
         self.__set_help_menu()
-        # TODO: добавить остальные вкладки
 
     def __set_toolbar(self) -> None:
         self.__toolbar.setMovable(False)
         self.__toolbar.addAction(self.__run_action)
         self.__toolbar.addAction(self.__debug_action)
-        # self.__toolbar.addAction(self.__pause_action)
         self.__toolbar.addAction(self.__stop_action)
         self.__toolbar.addSeparator()
         self.__toolbar.addAction(self.__save_program_action)
@@ -262,12 +288,14 @@ class App(QMainWindow):
         self.__toolbar.addAction(self.__load_tests_action)
         self.__toolbar.addSeparator()
         self.__toolbar.addAction(self.__clear_tape_action)
+        self.__toolbar.addAction(self.__save_tape_action)
+        self.__toolbar.addAction(self.__reset_tape_action)
         spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.__toolbar.addWidget(spacer)
         self.__toolbar.addWidget(QLabel('Pause: '))
         self.__toolbar.addWidget(self.__timer)
-        self.__toolbar.setContentsMargins(0, 0, 5, 0)  # TODO: нормально подравнять нужно
+        self.__toolbar.setContentsMargins(0, 0, 5, 0)
         self.addToolBar(Qt.TopToolBarArea, self.__toolbar)
 
     def __set_status_bar(self) -> None:
@@ -296,50 +324,74 @@ class App(QMainWindow):
         self.__main_layout.addWidget(self.__tape)
         self.__main_layout.addWidget(self.__main_widget, 0, 0)
 
-    def __enable_interface(self) -> None:
-        ...
-        # self.__run_action.setEnabled(True)
-        # self.__pause_action.setEnabled(False)
-        # self.__stop_action.setEnabled(False)
-        # self.__table.setEnabled(True)
-        # self.__tape_list.setEnabled(True)
-        # self.__tape.setEnabled(True)
+    def __instopped_interface(self) -> None:
+        self.__run_action.setIcon(self.__RUN)
+        self.__debug_action.setEnabled(True)
+        self.__stop_action.setEnabled(False)
+        self.__table.setEnabled(True)
+        self.__tape_list.setEnabled(True)
+        self.__tape.setEnabled(True)
 
-    def __disable_interface(self) -> None:
-        ...
-        # self.__run_action.setEnabled(False)
-        # self.__pause_action.setEnabled(True)
-        # self.__stop_action.setEnabled(True)
-        # self.__table.setEnabled(False)
-        # self.__tape_list.setEnabled(False)
-        # self.__tape.setEnabled(False)
+    def __inrunning_interface(self) -> None:
+        self.__run_action.setIcon(self.__PAUSE)
+        self.__debug_action.setEnabled(False)
+        self.__stop_action.setEnabled(True)
+        self.__table.setEnabled(False)
+        self.__tape_list.setEnabled(False)
+        self.__tape.setEnabled(False)
+
+    def __inpaused_interface(self) -> None:
+        self.__run_action.setIcon(self.__RUN)
+        self.__debug_action.setEnabled(True)
+        self.__stop_action.setEnabled(True)
+        self.__table.setEnabled(True)
+        self.__tape_list.setEnabled(True)
+        self.__tape.setEnabled(True)
+
+    def __indebugging_interface(self) -> None:
+        self.__debug_action.setEnabled(True)
+        self.__stop_action.setEnabled(True)
+        self.__table.setEnabled(True)
+        self.__tape_list.setEnabled(True)
+        self.__tape.setEnabled(True)
 
     def run_program(self):
-        # self.__disable_interface()
         if self.__program.isRunning():
+            if self.__program.is_paused():
+                self.__inrunning_interface()
+            else:
+                self.__inpaused_interface()
             self.__program.pause()
             return
+        self.__inrunning_interface()
         self.__program.set_mode(False)
         self.__program.isRunning()
         self.__program.start()
 
     def debug_program(self):
-        # self.__disable_interface()
-        # self.__program.set_mode(True)
-        # self.__program.start()
+        self.__indebugging_interface()
         self.__program.debug()
 
-    # def pause_program(self):
-    #     self.__program.pause()
-
     def stop_program(self):
-        # self.__enable_interface()
+        self.__instopped_interface()
         self.__program.stop()
         self.__program.quit()
         self.__program.wait()
 
-    def clear_tape(self):
+    def clear_tape(self) -> None:
         self.__tape.reset()
+
+    def save_tape(self) -> None:
+        self.__tape_list.save_active_tape(True)
+
+    def reset_tape(self) -> None:
+        self.__tape_list.reset()
+
+    def active_reset_tape(self) -> None:
+        self.__reset_tape_action.setEnabled(True)
+
+    def inactive_reset_tape(self) -> None:
+        self.__reset_tape_action.setEnabled(False)
 
     def init_ui(self):
         self.setGeometry(self.__x, self.__y, self.__width, self.__height)
@@ -350,7 +402,7 @@ class App(QMainWindow):
         self.__set_toolbar()
         self.__set_status_bar()
         self.__set_interface()
-        self.__enable_interface()
+        self.__instopped_interface()
 
         self.setCentralWidget(self.__main_widget)
         self.show()
@@ -404,17 +456,21 @@ class App(QMainWindow):
 class HelpContent(QTextEdit):
     def __init__(self):
         super().__init__()
+        self.setWindowTitle('Help Content')
         self.setStyleSheet('font-size: 13pt;')
         self.setGeometry(200, 200, 900, 500)
         self.insertHtml(HELP)
+        self.setReadOnly(True)
 
 
 class About(QTextEdit):
     def __init__(self):
         super().__init__()
+        self.setWindowTitle('About')
         self.setStyleSheet('font-size: 12pt;')
-        self.setGeometry(200, 200, 500, 500)
+        self.setFixedSize(500, 190)
         self.insertHtml(ABOUT)
+        self.setReadOnly(True)
 
 
 if __name__ == '__main__':

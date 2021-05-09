@@ -59,8 +59,6 @@ class Loader:
                 program = json.load(fin)
             self.__comment.set_from_file(program['comment'])
             self.__table.set_from_file(program['table'])
-            # TODO: проблемно, когда сначала были загружны тесты, а затем программа.
-            # тогда загруженная из программы лента будет перекрывать какой-то тест (он потеряется!!!)
             self.__tape_list.set_main_from_file(program['main'])
             self.__saver.update_program_data()
             self.__saver.set_program_path(path)

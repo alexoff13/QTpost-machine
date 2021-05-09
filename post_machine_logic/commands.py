@@ -11,11 +11,12 @@ from widgets.timer import Timer
 class Runner:
     _signals = RunnerSignals()
 
-    def __init__(self, table: Table, tape: Tape, timer: Timer):
+    def __init__(self, table: Table, tape: Tape, timer: Timer, on_stop: pyqtBoundSignal):
         # super().__init__()
         self._table = table
         self._tape = tape
         self._timer = timer
+        self._on_stop = on_stop
         self._is_running = False
         self._is_event_completed = False
         self._set_signals()
@@ -78,11 +79,11 @@ class Runner:
         self.update()
         return line
 
-    def _end(self, to_state: str) -> int:
-        print('here')
+    def _end(self, to_state: str = None) -> int:
         self.stop()
+        self._on_stop.emit()
         self._is_event_completed = True
-        self.__select_line()
+        self.__select_line(-1)
         return 0
 
     def debug(self):
@@ -91,9 +92,10 @@ class Runner:
         if self._is_running and self._is_event_completed:
             self.__select_line()
             self._is_event_completed = False
-            # self.__signals.go_right.emit(self.__signals.update)
-            # TODO добавить: если стейт пустой, то просто переход на следующую строку
-            self.__line = self._commands[commands[self.__line][0]](commands[self.__line][1])
+            try:
+                self.__line = self._commands[commands[self.__line][0]](commands[self.__line][1])
+            except:
+                self.__line += 1
             self._pause()
 
     def run(self):
@@ -105,19 +107,31 @@ class Runner:
             if self._is_event_completed and not self._pause_run_program:
                 self.__select_line()
                 self._is_event_completed = False
-                # self.__signals.go_right.emit(self.__signals.update)
-                # TODO добавить: если стейт пустой, то просто переход на следующую строку
-                self.__line = self._commands[commands[self.__line][0]](commands[self.__line][1])
+                try:
+                    next_state = int(commands[self.__line][1])
+                except ValueError:
+                    next_state = self.__line + 2
+                try:
+                    self.__line = self._commands[commands[self.__line][0]](next_state)
+                except KeyError:
+                    self._end()
                 self._pause()
             else:
                 sleep(0.00001)
 
-    def __select_line(self):
-        self._table.set_current_line_in_run(self.line)
+    def __select_line(self, value: int = -2):
+        if value == -2:
+            self._table.set_current_line_in_run(self.line)
+        else:
+            self._table.set_current_line_in_run(-1)
         self._signals.select_row_in_table.emit(self._signals.update)
 
     def pause_run(self):
         self._pause_run_program = not self._pause_run_program
+
+    @property
+    def pause_run_program(self) -> bool:
+        return self._pause_run_program
 
     def stop(self) -> None:
         self._pause_run_program = False
@@ -135,8 +149,8 @@ class Program(QThread):
         self.__tape = tape
         self.__timer = timer
         self.__is_debug = False
-        self.__runner = Runner(self.__table, self.__tape, self.__timer)
-        self.__on_stop_signal = on_stop
+        self.__runner = Runner(self.__table, self.__tape, self.__timer, on_stop)
+        self.__on_stop = on_stop
 
     def __select_mode(self):
         if self.__is_debug:
@@ -155,8 +169,11 @@ class Program(QThread):
             self.__select_mode()()
         except KeyError:
             # В программе что-то пошло не так
-            if self.__on_stop_signal is not None:
-                self.__on_stop_signal.emit()
+            if self.__on_stop is not None:
+                self.__on_stop.emit()
+
+    def is_paused(self) -> bool:
+        return self.__runner.pause_run_program
 
     def pause(self):
         self.__runner.pause_run()

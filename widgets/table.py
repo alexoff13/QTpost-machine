@@ -150,7 +150,7 @@ class Table(QWidget):
 
     def set_selected_line(self):
         self.__table.selectRow(self.__current_line_in_run)
-        if self.__current_line_in_run == 0:
+        if self.__current_line_in_run == -1:
             self.__table.clearSelection()
 
     def draw(self):

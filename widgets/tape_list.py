@@ -2,19 +2,21 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QPushButton, QVBoxLayout, QListWidgetItem
 
+from utils.signals import MainSignals
 from widgets.tests_list import TestsList
 from widgets.main_list import MainList
 from widgets.tape import Tape
 
 
 class TapeList(QWidget):
-    def __init__(self, tape: Tape, parent: any = None):
+    def __init__(self, tape: Tape, signals: MainSignals, parent: any = None):
         super().__init__(parent=parent)
         self.__tape = tape
         self.__parent = parent
         self.__button_width = 60
         self.__button_height = 25
         self.__active_tape = None
+        self.__signals = signals
         
         self.__add = QPushButton()
         self.__remove = QPushButton()
@@ -98,6 +100,7 @@ class TapeList(QWidget):
         self.__set_inactive(self.__active_tape)
         self.__set_active(self.__tests_list.add_test())
         self.__tape.reset()
+        self.__signals.inactive_reset.emit()
 
     def __on_remove_click(self) -> None:
         # просто получаем список выделенных и удаляем
@@ -110,11 +113,25 @@ class TapeList(QWidget):
                 self.__set_active(self.__tests_list.get_last())
             else:
                 self.__set_active(self.__main_list.main)
+            self.__set_reset_mode()
+
+    def __set_reset_mode(self) -> None:
+        if self.__active_tape == self.__main_list.main:
+            if self.__main_list.saved_state is not None:
+                self.__signals.active_reset.emit()
+            else:
+                self.__signals.inactive_reset.emit()
+        else:
+            if self.__tests_list.get_saved_state(self.__active_tape) is not None:
+                self.__signals.active_reset.emit()
+            else:
+                self.__signals.inactive_reset.emit()
 
     def __choose_tape(self, item: QListWidgetItem) -> None:
         if item != self.__active_tape:
             self.__set_inactive(self.__active_tape)
             self.__set_active(item)
+            self.__set_reset_mode()
 
     def __check_item(self, item: QListWidgetItem) -> None:
         try:
@@ -129,16 +146,26 @@ class TapeList(QWidget):
         else:
             test_name = item.text()
             if item.last_name != test_name:
+                if test_name == 'I love beer':
+                    test_name = 'We love it too'
                 correct_name = self.__tests_list.get_test_name(test_name, item.last_name)
-                if test_name != correct_name:
-                    item.setText(correct_name)
+                item.setText(correct_name)
                 self.__tests_list.rename(item.last_name, correct_name)
 
-    def save_active_tape(self) -> None:
+    def save_active_tape(self, global_: bool = False) -> None:
         if self.__active_tape == self.__main_list.main:
-            self.__main_list.save_state()
+            self.__main_list.save_state(global_)
         else:
-            self.__tests_list.save_state(self.__active_tape)
+            self.__tests_list.save_state(self.__active_tape, global_)
+        self.__set_reset_mode()
+
+    def reset(self) -> None:
+        if self.__active_tape == self.__main_list.main:
+            if self.__main_list.saved_state is not None:
+                self.__tape.set_from_file(self.__main_list.saved_state)
+        else:
+            if self.__tests_list.get_saved_state(self.__active_tape) is not None:
+                self.__tape.set_from_file(self.__tests_list.get_saved_state(self.__active_tape))
 
     def get_main_data(self) -> dict:
         self.save_active_tape()
@@ -149,13 +176,14 @@ class TapeList(QWidget):
         return self.__tests_list.get_data()
 
     def set_main_from_file(self, file: dict) -> None:
+        self.__main_list.set_from_file(file)
         if self.__active_tape == self.__main_list.main:
             self.__tape.set_from_file(file)
-        else:
-            self.__main_list.state = file
+        self.__set_reset_mode()
 
     def set_tests_from_file(self, file: dict) -> None:
         self.__tests_list.set_from_file(file)
+        self.__set_reset_mode()
 
     def has_main_unsaved_data(self) -> bool:
         self.save_active_tape()
