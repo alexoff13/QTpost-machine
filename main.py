@@ -3,7 +3,7 @@ import sys
 from PyQt5.QtCore import Qt, QEvent
 from PyQt5.QtGui import QIcon, QPixmap, QCloseEvent
 from PyQt5.QtWidgets import (QWidget, QApplication, QMainWindow, QAction,
-                             QToolBar, QGridLayout, QSizePolicy, QSplitter, QLabel, QMessageBox)
+                             QToolBar, QGridLayout, QSizePolicy, QSplitter, QLabel, QMessageBox, QTextEdit)
 
 from post_machine_logic import Program
 from utils import Saver, Loader
@@ -12,8 +12,25 @@ from widgets.comment import Comment
 from widgets.table import Table
 from widgets.tape import Tape
 from widgets.tape_list import TapeList
-# TODO: во время (не) выполнения программы некоторые элементы должны быть не активными
 from widgets.timer import Timer
+
+
+HELP = """<p>The program consists of numbered lines. Each line contains one of the following commands:</p>
+<ul>
+<li><code>&gt;</code> N - move the carriage to the right by 1 cell and go to the row with the number N</li>
+<li><code>&lt;</code> N - move the carriage to the left by 1 cell and go to the row with the number N</li>
+<li><code>x</code> N - erase the label and go to the line with the number N</li>
+<li><code>+</code> N - put a label and go to the line with the number N</li>
+<li><code>?</code> N, M - if the current cell is not marked, then go to the row with the number N, otherwise go to the row M</li>
+<li><code>!</code> - stop the program</li>
+</ul>
+
+For more information, go to the program page <a href="https://github.com/alexoff13/QTpost-machine">https://github.com/alexoff13/QTpost-machine</a>"""
+
+
+ABOUT = """"""
+
+FULL_PATH = 'C:/Projects/QTpost-machine/'
 
 
 class App(QMainWindow):
@@ -22,6 +39,8 @@ class App(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.__help_content = None
+        self.__about = None
         # значения окна
         self.__x = 200
         self.__y = 200
@@ -42,11 +61,15 @@ class App(QMainWindow):
         self.__load_program_action = QAction()
         self.__load_tests_action = QAction()
         self.__reset_action = QAction()
+        self.__help_content_action = QAction()
+        self.__about_action = QAction()
         self.__exit_action = QAction()
         # инициализация меню
         self.__menu_bar = self.menuBar()
         self.__file_menu = self.__menu_bar.addMenu(str())
         self.__execution_menu = self.__menu_bar.addMenu(str())
+        self.__tape_menu = self.__menu_bar.addMenu(str())
+        self.__help_menu = self.__menu_bar.addMenu(str())
         # инициализация тулбара
         self.__toolbar = QToolBar()
         self.__status_bar_label = QLabel()
@@ -62,9 +85,9 @@ class App(QMainWindow):
         self.__tape = Tape(self.__width)
         self.__tape_list = TapeList(self.__tape)
         # инициализация иконок
-        self.__OK = QPixmap('icons/ok.png')
-        self.__ERROR = QPixmap('icons/error.png')
-        self.__RUN = QIcon('icons/run.png')
+        self.__OK = QPixmap(f'{FULL_PATH}icons/ok.png')
+        self.__ERROR = QPixmap(f'{FULL_PATH}icons/error.png')
+        self.__RUN = QIcon(f'{FULL_PATH}icons/run.png')
         # self.__PAUSE = QIcon('icons/pause.png')
 
         # инициализация раннера, сейвера и загрузчика
@@ -89,14 +112,14 @@ class App(QMainWindow):
         self.__signals.on_stop.connect(self.__enable_interface)
 
     def __set_run_action(self) -> None:
-        self.__run_action.setIcon(QIcon('icons/run.png'))
+        self.__run_action.setIcon(QIcon(f'{FULL_PATH}icons/run.png'))
         self.__run_action.setText('Run')
         self.__run_action.setShortcut('F4')
         self.__run_action.setStatusTip('Run program')
         self.__run_action.triggered.connect(self.run_program)
 
     def __set_debug_action(self) -> None:
-        self.__debug_action.setIcon(QIcon('icons/debug.png'))
+        self.__debug_action.setIcon(QIcon(f'{FULL_PATH}icons/debug.png'))
         self.__debug_action.setText('Debug')
         self.__debug_action.setShortcut('F8')
         self.__debug_action.setStatusTip('Debug program step by step')
@@ -110,14 +133,14 @@ class App(QMainWindow):
     #     self.__pause_action.triggered.connect(self.pause_program)
 
     def __set_clear_tape_action(self) -> None:
-        self.__clear_tape_action.setIcon(QIcon('icons/clear-tape.png'))
+        self.__clear_tape_action.setIcon(QIcon(f'{FULL_PATH}icons/clear-tape.png'))
         self.__clear_tape_action.setText('Clear')
         self.__clear_tape_action.setShortcut('F9')
         self.__clear_tape_action.setStatusTip('Clear tape')
         self.__clear_tape_action.triggered.connect(self.clear_tape)
 
     def __set_stop_action(self) -> None:
-        self.__stop_action.setIcon(QIcon('icons/stop.png'))
+        self.__stop_action.setIcon(QIcon(f'{FULL_PATH}icons/stop.png'))
         self.__stop_action.setText('Stop')
         self.__stop_action.setShortcut('F5')
         self.__stop_action.setStatusTip('Stop program')
@@ -131,44 +154,55 @@ class App(QMainWindow):
         self.__exit_action.triggered.connect(self.closeEvent)
 
     def __set_save_program_action(self) -> None:
-        self.__save_program_action.setIcon(QIcon('icons/save-program.png'))
+        self.__save_program_action.setIcon(QIcon(f'{FULL_PATH}icons/save-program.png'))
         self.__save_program_action.setText('Save Program')
         self.__save_program_action.setShortcut('Ctrl+P')
         self.__save_program_action.setStatusTip('Save program')
         self.__save_program_action.triggered.connect(self.__saver.save_program)
 
     def __set_save_tests_action(self) -> None:
-        self.__save_tests_action.setIcon(QIcon('icons/save-tests.png'))
+        self.__save_tests_action.setIcon(QIcon(f'{FULL_PATH}icons/save-tests.png'))
         self.__save_tests_action.setText('Save Tests')
         self.__save_tests_action.setShortcut('Ctrl+T')
         self.__save_tests_action.setStatusTip('Save tests')
         self.__save_tests_action.triggered.connect(self.__saver.save_tests)
 
     def __set_save_all_action(self) -> None:
-        self.__save_all_action.setIcon(QIcon('icons/save-all.png'))
+        self.__save_all_action.setIcon(QIcon(f'{FULL_PATH}icons/save-all.png'))
         self.__save_all_action.setText('Save All')
         self.__save_all_action.setShortcut('Ctrl+A')
         self.__save_all_action.setStatusTip('Save all')
         self.__save_all_action.triggered.connect(self.__saver.save_all)
 
     def __set_load_program_action(self) -> None:
-        self.__load_program_action.setIcon(QIcon('icons/open-program.png'))
+        self.__load_program_action.setIcon(QIcon(f'{FULL_PATH}icons/open-program.png'))
         self.__load_program_action.setText('Open Program')
         self.__load_program_action.setShortcut('Ctrl+Shift+P')
         self.__load_program_action.setStatusTip('Open program')
-        self.__load_program_action.triggered.connect(self.__loader.load_program)
+        self.__load_program_action.triggered.connect(self.__loader.open_program)
 
     def __set_load_tests_action(self) -> None:
-        self.__load_tests_action.setIcon(QIcon('icons/open-tests.png'))
+        self.__load_tests_action.setIcon(QIcon(f'{FULL_PATH}icons/open-tests.png'))
         self.__load_tests_action.setText('Open Tests')
         self.__load_tests_action.setShortcut('Ctrl+Shift+T')
         self.__load_tests_action.setStatusTip('Open tests')
-        self.__load_tests_action.triggered.connect(self.__loader.load_tests)
+        self.__load_tests_action.triggered.connect(self.__loader.open_tests)
+
+    def __set_help_content_action(self) -> None:
+        self.__help_content_action.setIcon(QIcon(''))
+        self.__help_content_action.setText('Help Content')
+        self.__help_content_action.setShortcut('Ctrl+H')
+        self.__help_content_action.triggered.connect(self.__show_help_content)
+
+    def __set_about_action(self) -> None:
+        self.__about_action.setIcon(QIcon(''))
+        self.__about_action.setText('About')
+        self.__about_action.setShortcut('Ctrl+A')
+        self.__about_action.triggered.connect(self.__show_about)
 
     def __set_actions(self) -> None:
         self.__set_run_action()
         self.__set_debug_action()
-        # self.__set_pause_action()
         self.__set_stop_action()
         self.__set_save_program_action()
         self.__set_clear_tape_action()
@@ -176,6 +210,8 @@ class App(QMainWindow):
         self.__set_save_all_action()
         self.__set_load_program_action()
         self.__set_load_tests_action()
+        self.__set_help_content_action()
+        self.__set_about_action()
         self.__set_exit_action()
 
     def __set_file_menu(self) -> None:
@@ -193,12 +229,22 @@ class App(QMainWindow):
         self.__execution_menu.setTitle('&Execution')
         self.__execution_menu.addAction(self.__run_action)
         self.__execution_menu.addAction(self.__debug_action)
-        # self.__execution_menu.addAction(self.__pause_action)
         self.__execution_menu.addAction(self.__stop_action)
+
+    def __set_tape_menu(self) -> None:
+        self.__tape_menu.setTitle('&Tape')
+        self.__tape_menu.addAction(self.__clear_tape_action)
+
+    def __set_help_menu(self) -> None:
+        self.__help_menu.setTitle('&Help')
+        self.__help_menu.addAction(self.__help_content_action)
+        self.__help_menu.addAction(self.__about_action)
 
     def __set_menu_bar(self) -> None:
         self.__set_file_menu()
         self.__set_execution_menu()
+        self.__set_tape_menu()
+        self.__set_help_menu()
         # TODO: добавить остальные вкладки
 
     def __set_toolbar(self) -> None:
@@ -343,6 +389,32 @@ class App(QMainWindow):
             a0.ignore()
         else:
             a0.accept()
+
+    def __show_help_content(self):
+        if self.__help_content is None:
+            self.__help_content = HelpContent()
+        self.__help_content.show()
+
+    def __show_about(self):
+        if self.__about is None:
+            self.__about = About()
+        self.__about.show()
+
+
+class HelpContent(QTextEdit):
+    def __init__(self):
+        super().__init__()
+        self.setStyleSheet('font-size: 13pt;')
+        self.setGeometry(200, 200, 900, 500)
+        self.insertHtml(HELP)
+
+
+class About(QTextEdit):
+    def __init__(self):
+        super().__init__()
+        self.setStyleSheet('font-size: 12pt;')
+        self.setGeometry(200, 200, 500, 500)
+        self.insertHtml(ABOUT)
 
 
 if __name__ == '__main__':

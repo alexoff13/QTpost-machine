@@ -8,6 +8,9 @@ from PyQt5.QtWidgets import QPushButton, QWidget, QHBoxLayout, QLabel, QVBoxLayo
 from utils.signals import TapeSignals
 
 
+FULL_PATH = 'C:/Projects/QTpost-machine/'
+
+
 class Index(QLabel):
 
     def __init__(self, index: int, width: int, height: int, is_carriage: bool = False, parent: any = None) -> None:
@@ -104,8 +107,8 @@ class TapeElement(QWidget):
 class Direction(QPushButton):
     WIDTH = 30
     HEIGHT = 65
-    LEFT = 'icons/left.png'
-    RIGHT = 'icons/right.png'
+    LEFT = f'{FULL_PATH}icons/left.png'
+    RIGHT = f'{FULL_PATH}icons/right.png'
 
     def __init__(self, is_left: bool, parent: any = None):
         super().__init__(parent=parent)
