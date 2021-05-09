@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QRegExp
+from PyQt5.QtCore import QRegExp, Qt
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, \
     QCheckBox, QStyledItemDelegate, QLineEdit, QSizePolicy
@@ -24,6 +24,14 @@ class StyledItemDelegateForState(QStyledItemDelegate):
             )
             editor.setValidator(validator)
         return editor
+
+    def setModelData(self, editor, model, index):
+        value = editor.displayText()
+        try:
+            new_value = ' or '.join(value.split())
+        except:
+            new_value = value
+        model.setData(index, new_value, Qt.EditRole)
 
 
 class Table(QWidget):
@@ -142,6 +150,8 @@ class Table(QWidget):
 
     def set_selected_line(self):
         self.__table.selectRow(self.__current_line_in_run)
+        if self.__current_line_in_run == 0:
+            self.__table.clearSelection()
 
     def draw(self):
         self.__set_insert()

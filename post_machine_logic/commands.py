@@ -70,24 +70,30 @@ class Runner:
         return int(to_state) - 1
 
     def _select_a_state(self, states: str):
-        state1, state2 = states.split()
+        try:
+            state1, state2 = states.split()
+        except ValueError:
+            state1, or_, state2 = states.split()
         line = (int(state2) if self._tape.is_carriage_marked() else int(state1)) - 1
         self.update()
         return line
 
     def _end(self, to_state: str) -> int:
+        print('here')
         self.stop()
-        return -1
+        self._is_event_completed = True
+        self.__select_line()
+        return 0
 
     def debug(self):
         self._is_running = True
-        self.commands = self._table.get_data()
+        commands = self._table.get_data()
         if self._is_running and self._is_event_completed:
             self.__select_line()
             self._is_event_completed = False
             # self.__signals.go_right.emit(self.__signals.update)
             # TODO добавить: если стейт пустой, то просто переход на следующую строку
-            self.__line = self._commands[self.commands[self.__line][0]](self.commands[self.__line][1])
+            self.__line = self._commands[commands[self.__line][0]](commands[self.__line][1])
             self._pause()
 
     def run(self):
@@ -115,6 +121,7 @@ class Runner:
 
     def stop(self) -> None:
         self._pause_run_program = False
+        self.__line = 0
         self._is_running = False
 
     def update(self):

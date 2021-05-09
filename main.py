@@ -12,8 +12,6 @@ from widgets.comment import Comment
 from widgets.table import Table
 from widgets.tape import Tape
 from widgets.tape_list import TapeList
-
-
 # TODO: во время (не) выполнения программы некоторые элементы должны быть не активными
 from widgets.timer import Timer
 
@@ -349,5 +347,6 @@ class App(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app.setStyle('Fusion')
     App = App()
     sys.exit(app.exec_())
