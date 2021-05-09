@@ -117,3 +117,9 @@ class Saver:
 
     def update_tests_data(self) -> None:
         self.__tests_data = self.get_tests_data()
+
+    def set_program_path(self, path: str) -> None:
+        self.__program_path = path
+
+    def set_tests_path(self, path: str) -> None:
+        self.__tests_path = path

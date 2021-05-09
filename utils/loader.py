@@ -30,33 +30,28 @@ class Loader:
     def __get_file_path(self) -> str:
         return QFileDialog.getOpenFileName(self.__parent, self.OPEN_FILE, self.DEFAULT_DIRECTORY)[0]
 
+    @staticmethod
+    def unsaved_data_message(on_yes) -> None:
+        message = QMessageBox()
+        message.setIcon(QMessageBox.Question)
+        message.setWindowTitle('Unsaved changes')
+        message.setText('Want to save your changes?')
+        message.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+        answer = message.exec()
+        if answer == QMessageBox.Yes:
+            on_yes()
+        elif answer == QMessageBox.Cancel:
+            raise LoadCancel
+
     def __unsaved_program_warning(self) -> None:
         if self.__saver.is_program_unsaved():
-            message = QMessageBox()
-            message.setIcon(QMessageBox.Question)
-            message.setWindowTitle('Unsaved changes')
-            message.setText('Want to save your changes?')
-            message.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
-            answer = message.exec()
-            if answer == QMessageBox.Yes:
-                self.__saver.save_program()
-            elif answer == QMessageBox.Cancel:
-                raise LoadCancel
+            self.unsaved_data_message(self.__saver.save_program)
 
     def __unsaved_tests_warning(self) -> None:
         if self.__saver.are_tests_unsaved():
-            message = QMessageBox()
-            message.setIcon(QMessageBox.Question)
-            message.setWindowTitle('Unsaved changes')
-            message.setText('Want to save your changes?')
-            message.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
-            answer = message.exec()
-            if answer == QMessageBox.Yes:
-                self.__saver.save_tests()
-            elif answer == QMessageBox.Cancel:
-                raise LoadCancel
+            self.unsaved_data_message(self.__saver.save_tests)
 
-    def load_program(self) -> None:
+    def open_program(self) -> None:
         try:
             self.__unsaved_program_warning()
             path = self.__get_file_path()
@@ -68,19 +63,22 @@ class Loader:
             # тогда загруженная из программы лента будет перекрывать какой-то тест (он потеряется!!!)
             self.__tape_list.set_main_from_file(program['main'])
             self.__saver.update_program_data()
+            self.__saver.set_program_path(path)
             self.__parent.log('The program has been successfully opened', True)
         except (KeyError, JSONDecodeError):
             self.__parent.log('Wrong program file selected or the program file is damaged', False)
         except (FileNotFoundError, LoadCancel):  # когда происходит какая-либо отмена
             self.__parent.log('Failed to open the program', False)
 
-    def load_tests(self) -> None:
+    def open_tests(self) -> None:
         try:
             self.__unsaved_tests_warning()
-            with open(self.__get_file_path(), 'r') as fin:
+            path = self.__get_file_path()
+            with open(path, 'r') as fin:
                 tests = json.load(fin)
             self.__tape_list.set_tests_from_file(tests)
             self.__saver.update_tests_data()
+            self.__saver.set_tests_path(path)
             self.__parent.log('The tests have been successfully opened', True)
         except (KeyError, JSONDecodeError):
             self.__parent.log('Wrong tests file selected or the tests file is damaged', False)
