@@ -92,10 +92,7 @@ class Runner:
         if self._is_running and self._is_event_completed:
             self.__select_line()
             self._is_event_completed = False
-            try:
-                self.__line = self._commands[commands[self.__line][0]](commands[self.__line][1])
-            except:
-                self.__line += 1
+            self.__line = self._commands[commands[self.__line][0]](commands[self.__line][1])
             self._pause()
 
     def run(self):
@@ -107,14 +104,16 @@ class Runner:
             if self._is_event_completed and not self._pause_run_program:
                 self.__select_line()
                 self._is_event_completed = False
-                try:
-                    next_state = int(commands[self.__line][1])
-                except ValueError:
-                    next_state = self.__line + 2
-                try:
-                    self.__line = self._commands[commands[self.__line][0]](next_state)
-                except KeyError:
-                    self._end()
+                # TODO некст стейт если пустой
+                # try:
+                #     next_state = int(commands[self.__line][1])
+                # except ValueError:
+                #     next_state = self.__line + 2
+                # try:
+                #     self.__line = self._commands[commands[self.__line][0]](next_state)
+                # except KeyError:
+                #     self._end()
+                self.__line = self._commands[commands[self.__line][0]](commands[self.__line][1])
                 self._pause()
             else:
                 sleep(0.00001)

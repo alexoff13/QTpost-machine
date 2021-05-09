@@ -38,7 +38,7 @@ from widgets.timer import Timer
 #     <p style="font-family: sans-serif; line-height: 0; margin: 30px;"
 #     >Repository: <a href="https://github.com/alexoff13/QTpost-machine" style="text-decoration: none; color: blue">https://github.com/alexoff13/QTpost-machine</a></p><p></p>"""
 
-FULL_PATH = 'C:/Projects/QTpost-machine/'
+FULL_PATH = '/home/alexoff/git/python/machine-post/'
 
 
 with open(f'{FULL_PATH}strings/help.html') as fin:
@@ -203,7 +203,11 @@ class App(QMainWindow):
         self.__load_program_action.setText('Open Program')
         self.__load_program_action.setShortcut('Ctrl+Shift+P')
         self.__load_program_action.setStatusTip('Open program')
-        self.__load_program_action.triggered.connect(self.__loader.open_program)
+        self.__load_program_action.triggered.connect(self.load_program)
+
+    def load_program(self) -> None:
+        self.stop_program()
+        self.__loader.open_program()
 
     def __set_load_tests_action(self) -> None:
         self.__load_tests_action.setIcon(QIcon(f'{FULL_PATH}icons/open-tests.png'))
