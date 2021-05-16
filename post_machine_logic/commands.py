@@ -93,7 +93,6 @@ class Runner:
             self.__select_line()
             self._is_event_completed = False
             self.__line = self._commands[commands[self.__line][0]](commands[self.__line][1])
-            self._pause()
 
     def run(self):
         commands = self._table.get_data()
@@ -169,6 +168,7 @@ class Program(QThread):
         except KeyError:
             # В программе что-то пошло не так
             if self.__on_stop is not None:
+                self.__runner.stop()
                 self.__on_stop.emit()
 
     def is_paused(self) -> bool:

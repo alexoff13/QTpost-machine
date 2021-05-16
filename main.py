@@ -1,7 +1,7 @@
 import sys
 
 from PyQt5.QtCore import Qt, QEvent
-from PyQt5.QtGui import QIcon, QPixmap, QCloseEvent, QFont
+from PyQt5.QtGui import QIcon, QPixmap, QCloseEvent
 from PyQt5.QtWidgets import (QWidget, QApplication, QMainWindow, QAction,
                              QToolBar, QGridLayout, QSizePolicy, QSplitter, QLabel, QMessageBox, QTextEdit)
 
@@ -14,37 +14,15 @@ from widgets.tape import Tape
 from widgets.tape_list import TapeList
 from widgets.timer import Timer
 
-#
-# HELP = """<p>The program consists of numbered lines. Each line contains one of the following commands:</p>
-# <ul>
-# <li><code>&gt;</code> N - move the carriage to the right by 1 cell and go to the row with the number N</li>
-# <li><code>&lt;</code> N - move the carriage to the left by 1 cell and go to the row with the number N</li>
-# <li><code>x</code> N - erase the label and go to the line with the number N</li>
-# <li><code>+</code> N - put a label and go to the line with the number N</li>
-# <li><code>?</code> N, M - if the current cell is not marked, then go to the row with the number N, otherwise go to the row M</li>
-# <li><code>!</code> - stop the program</li>
-# </ul>
-#
-# For more information, go to the program page <a href="https://github.com/alexoff13/QTpost-machine">https://github.com/alexoff13/QTpost-machine</a>"""
 
-# ABOUT = """<h2 style="font-family: sans-serif; font-weight: 900; display: flex; justify-content: center; line-height: 0; margin: 40px;"
-#     >Post Machine Emulator</h2>
-#     <p style="font-family: sans-serif; line-height: 0; margin: 30px;"
-#     >Distributed under The MIT License.</p>
-#     <p style="font-family: sans-serif; line-height: 0; margin: 30px;"
-#     >Version 1.0.0.0.1</p>
-#     <p style="font-family: sans-serif; line-height: 0; margin: 30px;"
-#     >Developed by <a href="https://github.com/markov-avl" style="text-decoration: none; color: blue">Andrey Markov</a> and <a href="https://github.com/alexoff13" style="text-decoration: none; color: blue">Alexey Davydov</a></p>
-#     <p style="font-family: sans-serif; line-height: 0; margin: 30px;"
-#     >Repository: <a href="https://github.com/alexoff13/QTpost-machine" style="text-decoration: none; color: blue">https://github.com/alexoff13/QTpost-machine</a></p><p></p>"""
-
-FULL_PATH = '/home/alexoff/git/python/machine-post/'
+def no_action(*args, **kwargs) -> None:
+    pass
 
 
-with open(f'{FULL_PATH}strings/help.html') as fin:
+with open(f'strings/help.html') as fin:
     HELP = fin.read()
 
-with open(f'{FULL_PATH}strings/about.html') as fin:
+with open(f'strings/about.html') as fin:
     ABOUT = fin.read()
 
 
@@ -101,10 +79,10 @@ class App(QMainWindow):
         self.__tape = Tape(self.__width)
         self.__tape_list = TapeList(self.__tape, self.__tape_signals)
         # инициализация иконок
-        self.__OK = QPixmap(f'{FULL_PATH}icons/ok.png')
-        self.__ERROR = QPixmap(f'{FULL_PATH}icons/error.png')
-        self.__RUN = QIcon(f'{FULL_PATH}icons/run.png')
-        self.__PAUSE = QIcon(f'{FULL_PATH}icons/pause.png')
+        self.__OK = QPixmap(f'icons/ok.png')
+        self.__ERROR = QPixmap(f'icons/error.png')
+        self.__RUN = QIcon(f'icons/run.png')
+        self.__PAUSE = QIcon(f'icons/pause.png')
 
         # инициализация раннера, сейвера и загрузчика
         self.__saver = Saver(self, self.__comment, self.__table, self.__tape, self.__tape_list)
@@ -128,28 +106,28 @@ class App(QMainWindow):
         self.__tape_signals.inactive_reset.connect(self.inactive_reset_tape)
 
     def __set_run_action(self) -> None:
-        self.__run_action.setIcon(QIcon(f'{FULL_PATH}icons/run.png'))
+        self.__run_action.setIcon(QIcon(f'icons/run.png'))
         self.__run_action.setText('Run')
         self.__run_action.setShortcut('F4')
         self.__run_action.setStatusTip('Run program')
         self.__run_action.triggered.connect(self.run_program)
 
     def __set_debug_action(self) -> None:
-        self.__debug_action.setIcon(QIcon(f'{FULL_PATH}icons/debug.png'))
+        self.__debug_action.setIcon(QIcon(f'icons/debug.png'))
         self.__debug_action.setText('Debug')
         self.__debug_action.setShortcut('F8')
         self.__debug_action.setStatusTip('Debug program step by step')
         self.__debug_action.triggered.connect(self.debug_program)
 
     def __set_clear_tape_action(self) -> None:
-        self.__clear_tape_action.setIcon(QIcon(f'{FULL_PATH}icons/clear-tape.png'))
+        self.__clear_tape_action.setIcon(QIcon(f'icons/clear-tape.png'))
         self.__clear_tape_action.setText('Clear')
         self.__clear_tape_action.setShortcut('F9')
         self.__clear_tape_action.setStatusTip('Clear selected tape')
         self.__clear_tape_action.triggered.connect(self.clear_tape)
 
     def __set_save_tape_action(self) -> None:
-        self.__save_tape_action.setIcon(QIcon(f'{FULL_PATH}icons/save-tape.png'))
+        self.__save_tape_action.setIcon(QIcon(f'icons/save-tape.png'))
         self.__save_tape_action.setText('Save')
         self.__save_tape_action.setShortcut('F10')
         self.__save_tape_action.setStatusTip('Save selected tape state')
@@ -157,14 +135,14 @@ class App(QMainWindow):
 
     def __set_reset_tape_action(self) -> None:
         self.__reset_tape_action.setEnabled(False)
-        self.__reset_tape_action.setIcon(QIcon(f'{FULL_PATH}icons/reset-tape.png'))
+        self.__reset_tape_action.setIcon(QIcon(f'icons/reset-tape.png'))
         self.__reset_tape_action.setText('Reset')
         self.__reset_tape_action.setShortcut('F11')
         self.__reset_tape_action.setStatusTip('Reset selected tape to the latest save')
         self.__reset_tape_action.triggered.connect(self.reset_tape)
 
     def __set_stop_action(self) -> None:
-        self.__stop_action.setIcon(QIcon(f'{FULL_PATH}icons/stop.png'))
+        self.__stop_action.setIcon(QIcon(f'icons/stop.png'))
         self.__stop_action.setText('Stop')
         self.__stop_action.setShortcut('F5')
         self.__stop_action.setStatusTip('Stop program')
@@ -178,28 +156,28 @@ class App(QMainWindow):
         self.__exit_action.triggered.connect(self.closeEvent)
 
     def __set_save_program_action(self) -> None:
-        self.__save_program_action.setIcon(QIcon(f'{FULL_PATH}icons/save-program.png'))
+        self.__save_program_action.setIcon(QIcon(f'icons/save-program.png'))
         self.__save_program_action.setText('Save Program')
         self.__save_program_action.setShortcut('Ctrl+P')
         self.__save_program_action.setStatusTip('Save program')
         self.__save_program_action.triggered.connect(self.__saver.save_program)
 
     def __set_save_tests_action(self) -> None:
-        self.__save_tests_action.setIcon(QIcon(f'{FULL_PATH}icons/save-tests.png'))
+        self.__save_tests_action.setIcon(QIcon(f'icons/save-tests.png'))
         self.__save_tests_action.setText('Save Tests')
         self.__save_tests_action.setShortcut('Ctrl+T')
         self.__save_tests_action.setStatusTip('Save tests')
         self.__save_tests_action.triggered.connect(self.__saver.save_tests)
 
     def __set_save_all_action(self) -> None:
-        self.__save_all_action.setIcon(QIcon(f'{FULL_PATH}icons/save-all.png'))
+        self.__save_all_action.setIcon(QIcon(f'icons/save-all.png'))
         self.__save_all_action.setText('Save All')
         self.__save_all_action.setShortcut('Ctrl+A')
         self.__save_all_action.setStatusTip('Save all')
         self.__save_all_action.triggered.connect(self.__saver.save_all)
 
     def __set_load_program_action(self) -> None:
-        self.__load_program_action.setIcon(QIcon(f'{FULL_PATH}icons/open-program.png'))
+        self.__load_program_action.setIcon(QIcon(f'icons/open-program.png'))
         self.__load_program_action.setText('Open Program')
         self.__load_program_action.setShortcut('Ctrl+Shift+P')
         self.__load_program_action.setStatusTip('Open program')
@@ -210,7 +188,7 @@ class App(QMainWindow):
         self.__loader.open_program()
 
     def __set_load_tests_action(self) -> None:
-        self.__load_tests_action.setIcon(QIcon(f'{FULL_PATH}icons/open-tests.png'))
+        self.__load_tests_action.setIcon(QIcon(f'icons/open-tests.png'))
         self.__load_tests_action.setText('Open Tests')
         self.__load_tests_action.setShortcut('Ctrl+Shift+T')
         self.__load_tests_action.setStatusTip('Open tests')
@@ -273,13 +251,15 @@ class App(QMainWindow):
         self.__help_menu.addAction(self.__about_action)
 
     def __set_menu_bar(self) -> None:
+        self.contextMenuEvent = no_action
         self.__set_file_menu()
         self.__set_execution_menu()
         self.__set_tape_menu()
         self.__set_help_menu()
 
     def __set_toolbar(self) -> None:
-        self.__toolbar.setMovable(False)
+        self.__toolbar.setVisible(True)
+        self.__toolbar.contextMenuEvent = no_action
         self.__toolbar.addAction(self.__run_action)
         self.__toolbar.addAction(self.__debug_action)
         self.__toolbar.addAction(self.__stop_action)
@@ -319,7 +299,7 @@ class App(QMainWindow):
         self.__v_splitter.addWidget(self.__comment)
         self.__v_splitter.addWidget(self.__h_splitter)
         self.__v_splitter.setStretchFactor(0, 1)
-        self.__v_splitter.setSizes([50, 450])  # TODO: убрать хардкод
+        self.__v_splitter.setSizes([1, 499])  # TODO: убрать хардкод
 
     def __set_interface(self) -> None:
         self.__set_h_splitter()
